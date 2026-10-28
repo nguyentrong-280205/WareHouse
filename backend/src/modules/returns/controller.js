@@ -1,0 +1,3 @@
+const {requestContext}=require('../warehouse/controller');
+function createReturnController(service){const h={};for(const kind of ['deliveries','returnRequests','returnReceptions'])for(const action of ['list','read'])h[kind+'.'+action]=async(req,res)=>res.json(await service[action](kind,requestContext(req,res)));for(const[id,method]of [['deliveries.confirm','confirmDelivery'],['returnRequests.create','createRequest'],['returnReceptions.post','receive']])h[id]=async(req,res)=>{const r=await service[method](requestContext(req,res));res.status(r.status).json(r.body);};return h;}
+module.exports={createReturnController};

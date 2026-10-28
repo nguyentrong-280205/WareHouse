@@ -1,0 +1,4 @@
+﻿# Run from the repository root: docker compose up -d
+name: warehouse
+include:
+  - path: ./infra/compose.yaml

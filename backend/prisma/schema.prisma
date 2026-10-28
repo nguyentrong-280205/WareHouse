@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+datasource db {
+  provider     = "mysql"
+  relationMode = "foreignKeys"
+}
+enum CatalogStatus {
+  ACTIVE
+  LOCKED
+}
+model KhachHang {
+  id        BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  code      String @unique @db.VarChar(50)
+  name      String @db.VarChar(255)
+  phone     String? @db.VarChar(32)
+  email     String? @db.VarChar(255)
+  address   String? @db.Text
+  status    CatalogStatus @default(ACTIVE)
+  version   Int @default(0) @db.UnsignedInt
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  accounts  TaiKhoan[]
+  @@index([email])
+  @@index([phone])
+}
+model VaiTroQuyen {
+  id          BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String @unique @db.VarChar(50)
+  name        String @db.VarChar(255)
+  description String? @db.Text
+  status      CatalogStatus @default(ACTIVE)
+  accounts    TaiKhoan[]
+  permissions VaiTro_Quyen[]
+}
+model Quyen {
+  id          BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String @unique @db.VarChar(100)
+  description String? @db.VarChar(255)
+  roles       VaiTro_Quyen[]
+}
+model VaiTro_Quyen {
+  roleId       BigInt @map("role_id") @db.UnsignedBigInt
+  permissionId BigInt @map("permission_id") @db.UnsignedBigInt
+  role         VaiTroQuyen @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  permission   Quyen @relation(fields: [permissionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+model TaiKhoan {
+  id                    BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  code                  String @unique @db.VarChar(50)
+  login                 String @unique @db.VarChar(100)
+  passwordHash          String @map("password_hash") @db.VarChar(255)
+  displayName           String @map("display_name") @db.VarChar(255)
+  roleId                BigInt @map("role_id") @db.UnsignedBigInt
+  customerId            BigInt? @map("customer_id") @db.UnsignedBigInt
+  status                CatalogStatus @default(ACTIVE)
+  failedAttemptCount    Int @default(0) @map("failed_attempt_count") @db.UnsignedInt
+  failedWindowStartedAt DateTime? @map("failed_window_started_at") @db.DateTime(3)
+  lockedUntil           DateTime? @map("locked_until") @db.DateTime(3)
+  version               Int @default(0) @db.UnsignedInt
+  createdAt             DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  role                  VaiTroQuyen @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  customer              KhachHang? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sessions              PhienDangNhap[]
+  audit                 AuditLog[]
+  idempotency           IdempotencyRequest[]
+  @@index([roleId])
+  @@index([customerId])
+}
+model PhienDangNhap {
+  id                BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  accountId         BigInt @map("account_id") @db.UnsignedBigInt
+  tokenHash         String @unique @map("token_hash") @db.Char(64)
+  csrfHash          String @map("csrf_hash") @db.Char(64)
+  createdAt         DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  lastSeenAt        DateTime @map("last_seen_at") @db.DateTime(3)
+  idleExpiresAt     DateTime @map("idle_expires_at") @db.DateTime(3)
+  absoluteExpiresAt DateTime @map("absolute_expires_at") @db.DateTime(3)
+  revokedAt         DateTime? @map("revoked_at") @db.DateTime(3)
+  account           TaiKhoan @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@index([accountId, idleExpiresAt, absoluteExpiresAt])
+}
+model AuditLog {
+  id            BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  actorId       BigInt @map("actor_id") @db.UnsignedBigInt
+  action        String @db.VarChar(100)
+  targetType    String @map("target_type") @db.VarChar(100)
+  targetId      BigInt @map("target_id") @db.UnsignedBigInt
+  before        Json?
+  after         Json?
+  correlationId String @map("correlation_id") @db.VarChar(64)
+  createdAt     DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  actor         TaiKhoan @relation(fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@index([targetType, targetId, createdAt])
+}
+model IdempotencyRequest {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  accountId    BigInt @map("account_id") @db.UnsignedBigInt
+  operation    String @db.VarChar(100)
+  key          String @db.VarChar(128)
+  requestHash  String @map("request_hash") @db.Char(64)
+  response     Json?
+  responseCode Int? @map("response_code") @db.UnsignedSmallInt
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  expiresAt    DateTime @map("expires_at") @db.DateTime(3)
+  account      TaiKhoan @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@unique([accountId, operation, key])
+}
+
+// Technical test-safety metadata, not a business entity. Dev has an empty table.
+model EnvironmentMarker {
+  id          Int @id @db.UnsignedTinyInt
+  environment String @db.VarChar(16)
+  instanceId  String @map("instance_id") @db.Char(36)
+  @@map("_warehouse_environment")
+}

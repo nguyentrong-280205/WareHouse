@@ -1,0 +1,113 @@
+﻿# Portable local demo: SQL Server and application share an isolated Compose network.
+name: warehouse
+services:
+  uploads-init:
+    image: node:24.21.0-bookworm-slim
+    user: "0:0"
+    command: ["node", "-e", "const fs=require('fs');fs.mkdirSync('/data/evidence',{recursive:true});for(const p of ['/data','/data/evidence'])fs.chownSync(p,1000,1000);"]
+    volumes: ["uploads:/data"]
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest@sha256:cf8f0ab2ebe61feec2eed2629061a07d247f791c2a8ddda74a4ac9f06a291718
+    hostname: warehouse-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_MEMORY_LIMIT_MB: "2048"
+    entrypoint: ["/bin/bash", "/warehouse/entrypoint.sh"]
+    secrets:
+      - { source: dockerSaPassword, target: sa_password }
+    ports: ["127.0.0.1:${SQLSERVER_PORT:-14330}:1433"]
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./sqlserver:/warehouse:ro
+    healthcheck:
+      test: ["CMD", "/bin/bash", "/warehouse/healthcheck.sh"]
+      interval: 10s
+      timeout: 6s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+  db-init:
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    command: ["node", "scripts/bootstrap-docker-sqlserver.js"]
+    secrets:
+      - { source: dockerBootstrap, target: bootstrap }
+    depends_on:
+      sqlserver: { condition: service_healthy }
+  migrate:
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    command: ["node", "scripts/initialize-docker.js"]
+    environment:
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173
+      AUTH_COOKIE_SECURE: "false"
+    secrets:
+      - { source: dockerAppUrl, target: app_url }
+      - { source: dockerMigrationUrl, target: migration_url }
+      - { source: dockerTestAppUrl, target: test_app_url }
+      - { source: dockerTestMigrationUrl, target: test_migration_url }
+      - { source: dockerCsrf, target: csrf }
+      - { source: dockerTestMarker, target: test_marker }
+      - { source: dockerDemoPassword, target: demo_password }
+      - { source: dockerInstallationId, target: installation_id }
+    volumes:
+      - demo_artifacts:/workspace/backend/.artifacts
+      - uploads:/workspace/backend/uploads
+    depends_on:
+      db-init: { condition: service_completed_successfully }
+      uploads-init: { condition: service_completed_successfully }
+  backend:
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL_FILE: /run/secrets/database_url
+      CSRF_SECRET_FILE: /run/secrets/csrf_secret
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173
+      OPENAPI_FILE: /workspace/docs/runtime_api.json
+      PLANNED_OPENAPI_FILE: /workspace/docs/api_contract.yaml
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_ALLOW_SIMPLE_DEMO: "true"
+      ARGON2_MEMORY_COST: "65536"
+      ARGON2_TIME_COST: "3"
+      ARGON2_PARALLELISM: "1"
+    secrets:
+      - { source: dockerAppUrl, target: database_url }
+      - { source: dockerCsrf, target: csrf_secret }
+    ports: ["127.0.0.1:${BACKEND_PORT:-3001}:3000"]
+    volumes:
+      - uploads:/workspace/backend/uploads
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+    restart: unless-stopped
+  frontend:
+    build: { context: .., dockerfile: infra/frontend.Dockerfile }
+    ports: ["127.0.0.1:${FRONTEND_PORT:-8080}:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+volumes:
+  sqlserver_data: { name: warehouse_sqlserver_data }
+  demo_artifacts: { name: warehouse_demo_artifacts }
+  uploads: { name: warehouse_uploads }
+secrets:
+  dockerSaPassword: { file: ./secrets/docker/saPassword }
+  dockerBootstrap: { file: ./secrets/docker/bootstrap.json }
+  dockerAppUrl: { file: ./secrets/docker/appUrl }
+  dockerMigrationUrl: { file: ./secrets/docker/migrationUrl }
+  dockerTestAppUrl: { file: ./secrets/docker/testAppUrl }
+  dockerTestMigrationUrl: { file: ./secrets/docker/testMigrationUrl }
+  dockerCsrf: { file: ./secrets/docker/csrf }
+  dockerTestMarker: { file: ./secrets/docker/testMarker }
+  dockerDemoPassword: { file: ./secrets/docker/simpleDemoPassword }
+  dockerInstallationId: { file: ./secrets/docker/installationId }

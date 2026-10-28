@@ -1,0 +1,59 @@
+# SQL Server runs on Windows; preserved MySQL containers/volumes are not managed here.
+name: warehouse-windows
+services:
+  migrate:
+    profiles: ["app"]
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    working_dir: /workspace/backend
+    environment:
+      MIGRATION_DATABASE_URL_FILE: /run/secrets/database_url
+    secrets:
+      - { source: sqlserverMigrationUrl, target: database_url }
+    command: ["node", "scripts/migrate.js", "development"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+  backend:
+    profiles: ["app"]
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL_FILE: /run/secrets/database_url
+      CSRF_SECRET_FILE: /run/secrets/csrf_secret
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173
+      OPENAPI_FILE: /workspace/docs/runtime_api.json
+      PLANNED_OPENAPI_FILE: /workspace/docs/api_contract.yaml
+      AUTH_COOKIE_SECURE: "false" # Explicit localhost HTTP exception; use true for HTTPS.
+      AUTH_ALLOW_SIMPLE_DEMO: "true" # Named, local demo accounts only.
+      ARGON2_MEMORY_COST: "65536"
+      ARGON2_TIME_COST: "3"
+      ARGON2_PARALLELISM: "1"
+    secrets:
+      - { source: sqlserverAppUrl, target: database_url }
+      - { source: csrf, target: csrf_secret }
+    ports: ["127.0.0.1:${BACKEND_PORT:-3000}:3000"]
+    volumes:
+      - ../backend/uploads:/workspace/backend/uploads
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+  frontend:
+    profiles: ["app"]
+    build: { context: .., dockerfile: infra/frontend.Dockerfile }
+    ports: ["127.0.0.1:8080:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+secrets:
+  csrf: { file: ./secrets/csrf }
+  sqlserverAppUrl: { file: ./secrets/sqlserverAppUrl }
+  sqlserverMigrationUrl: { file: ./secrets/sqlserverMigrationUrl }

@@ -1,0 +1,5 @@
+const {requestContext}=require('../warehouse/controller');
+function createQcController(service){const h={};for(const kind of ['materialQc','productQc','returnQc'])for(const action of ['list','read','create','confirm'])h[kind+'.'+action]=async(req,res)=>{const r=await service[action](kind,requestContext(req,res));if(action==='list'||action==='read')res.json(r);else res.status(r.status).json(r.body);};h['materialDeliveries.create']=async(req,res)=>{const r=await service.createDelivery(requestContext(req,res));res.status(r.status).json(r.body);};return h;}
+const baseCreate=createQcController;
+function createCompleteQcController(service){const h=baseCreate(service);h['materialDeliveries.list']=async(req,res)=>res.json(await service.deliveries(requestContext(req,res)));h['materialDeliveries.read']=async(req,res)=>res.json(await service.delivery(requestContext(req,res)));h['materialDeliveries.register']=async(req,res)=>{const ctx=requestContext(req,res),{purchaseId,...body}=ctx.body;const r=await service.createDelivery({...ctx,params:{id:purchaseId},body});res.status(r.status).json(r.body);};return h;}
+module.exports={createQcController:createCompleteQcController};

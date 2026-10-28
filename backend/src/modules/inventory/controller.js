@@ -1,0 +1,8 @@
+const {requestContext}=require('../warehouse/controller');
+function createInventoryController(service){const h={};h['issues.materialSuggestions']=async(req,res)=>res.json(await service.materialSuggestions(requestContext(req,res)));for(const family of ['receipts','issues']){
+ for(const action of ['list','read'])h[family+'.'+action]=async(req,res)=>res.json(await service[action](family,requestContext(req,res)));
+ for(const action of ['allocate','updateAllocation'])h[family+'.'+action]=async(req,res)=>{const r=await service.allocate(family,requestContext(req,res),action==='updateAllocation');res.status(r.status).json(r.body);};
+ for(const action of ['confirmAllocation','reopen','cancel',...(family==='issues'?['renewReservation']:[])])h[family+'.'+action]=async(req,res)=>{const r=await service.command(family,action,requestContext(req,res));res.status(r.status).json(r.body);};
+ for(const action of family==='issues'?['postMaterial','postSale']:['postMaterial','postProduct','postReturn','postRejected'])h[family+'.'+action]=async(req,res)=>{const r=await service.post(family,action,requestContext(req,res));res.status(r.status).json(r.body);};
+ }h['reservations.read']=async(req,res)=>res.json(await service.reservations(requestContext(req,res)));h['reservations.release']=async(req,res)=>{const r=await service.command('issues','reopen',requestContext(req,res));res.status(r.status).json(r.body);};h['reservations.renew']=async(req,res)=>{const r=await service.command('issues','renewReservation',requestContext(req,res));res.status(r.status).json(r.body);};h['inventory.search']=async(req,res)=>res.json(await service.search(requestContext(req,res)));return h;}
+module.exports={createInventoryController};

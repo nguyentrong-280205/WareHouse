@@ -1,0 +1,290 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Warehouse Foundation API",
+    "version": "1.0.0",
+    "description": "Phase1 infrastructure only. Business APIs/UC01 login are not implemented. See api_contract.yaml for the planned29UC contract."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Same-origin backend endpoint"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "foundation.health",
+        "summary": "Application and database readiness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "SQL Server query successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "application",
+                        "database",
+                        "service"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "degraded"
+                          ]
+                        },
+                        "application": {
+                          "type": "string",
+                          "enum": [
+                            "running"
+                          ]
+                        },
+                        "database": {
+                          "type": "string",
+                          "enum": [
+                            "connected",
+                            "unavailable"
+                          ]
+                        },
+                        "service": {
+                          "type": "string",
+                          "enum": [
+                            "warehouse-foundation"
+                          ]
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "correlationId"
+                      ],
+                      "properties": {
+                        "correlationId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Application running; database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "application",
+                        "database",
+                        "service"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "degraded"
+                          ]
+                        },
+                        "application": {
+                          "type": "string",
+                          "enum": [
+                            "running"
+                          ]
+                        },
+                        "database": {
+                          "type": "string",
+                          "enum": [
+                            "connected",
+                            "unavailable"
+                          ]
+                        },
+                        "service": {
+                          "type": "string",
+                          "enum": [
+                            "warehouse-foundation"
+                          ]
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "correlationId"
+                      ],
+                      "properties": {
+                        "correlationId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "foundation.versionedHealth",
+        "summary": "Application and database readiness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "SQL Server query successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "application",
+                        "database",
+                        "service"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "degraded"
+                          ]
+                        },
+                        "application": {
+                          "type": "string",
+                          "enum": [
+                            "running"
+                          ]
+                        },
+                        "database": {
+                          "type": "string",
+                          "enum": [
+                            "connected",
+                            "unavailable"
+                          ]
+                        },
+                        "service": {
+                          "type": "string",
+                          "enum": [
+                            "warehouse-foundation"
+                          ]
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "correlationId"
+                      ],
+                      "properties": {
+                        "correlationId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Application running; database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "application",
+                        "database",
+                        "service"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "degraded"
+                          ]
+                        },
+                        "application": {
+                          "type": "string",
+                          "enum": [
+                            "running"
+                          ]
+                        },
+                        "database": {
+                          "type": "string",
+                          "enum": [
+                            "connected",
+                            "unavailable"
+                          ]
+                        },
+                        "service": {
+                          "type": "string",
+                          "enum": [
+                            "warehouse-foundation"
+                          ]
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "correlationId"
+                      ],
+                      "properties": {
+                        "correlationId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

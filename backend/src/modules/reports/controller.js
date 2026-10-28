@@ -1,0 +1,3 @@
+const{requestContext}=require('../warehouse/controller');
+function createReportController(service){const h={};for(const[id,method]of [['inventory.ledger','ledger'],['reports.inventory','inventory'],['reports.movements','ledger'],['reports.expiry','expiry'],['reports.alerts','alerts'],['reports.stocktake-variances','variances'],['reports.alertRules','alertRules']])h[id]=async(req,res)=>res.json(await service[method](requestContext(req,res)));h['reports.configureAlert']=async(req,res)=>{const r=await service.configureAlert(requestContext(req,res));res.status(r.status).json(r.body);};return h;}
+module.exports={createReportController};

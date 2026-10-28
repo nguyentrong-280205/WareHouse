@@ -1,0 +1,48 @@
+{
+  "name": "warehouse-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": "24.21.0"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "jest --runInBand tests/unit",
+    "test:unit": "npm test",
+    "test:integration": "jest --runInBand tests/integration",
+    "test:api": "npm run test:integration",
+    "db:migrate": "node scripts/migrate.js development",
+    "db:migrate:test": "node scripts/migrate.js test",
+    "db:status": "node scripts/migrate.js development --status",
+    "db:status:test": "node scripts/migrate.js test --status",
+    "db:connection": "node scripts/sqlserver-connection.js",
+    "openapi:validate": "node scripts/validate-openapi.js",
+    "test:browser": "node tests/browser-smoke.js",
+    "seed:uc01:demo": "node scripts/seed-uc01-demo.js",
+    "openapi:runtime": "node scripts/update-runtime-contract.js",
+    "check": "node scripts/check.js",
+    "check:frontend": "node scripts/check-frontend.js",
+    "seed:full:demo": "node scripts/seed-full-system-demo.js",
+    "seed:simple:demo": "node scripts/seed-simple-demo.js"
+  },
+  "dependencies": {
+    "argon2": "0.45.1",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.5",
+    "dotenv": "17.2.3",
+    "express": "5.2.1",
+    "lossless-json": "4.3.1",
+    "mssql": "12.7.9",
+    "pino": "9.6.0",
+    "swagger-ui-express": "5.0.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "10.1.1",
+    "jest": "30.5.2",
+    "playwright-core": "1.57.0",
+    "supertest": "7.1.4"
+  }
+}

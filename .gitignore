@@ -1,0 +1,57 @@
+# Dependencies and generated build output. Keep package.json and lockfiles.
+node_modules/
+dist/
+dist-ssr/
+build/
+generated/
+.vite/
+.cache/
+.npm/
+*.tsbuildinfo
+/.tools-runtime/
+
+# Machine-specific configuration and credentials. Templates must be committed.
+.env
+.env.*
+!.env.example
+*.local
+*.local.*
+/infra/secrets/
+.artifacts/
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Runtime files, database data and backups. Keep versioned SQL migrations.
+uploads/
+logs/
+*.log
+*.dump
+*.sql.dump
+*.sql.gz
+*.bak
+*.trn
+*.mdf
+*.ndf
+*.ldf
+
+# Test output and coverage; keep test source and configuration.
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Generated bundle; the editable docs/ directory remains in Git.
+/docs.zip
+
+# Editor and operating-system files.
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~

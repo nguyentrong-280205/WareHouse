@@ -1,0 +1,112 @@
+name: warehouse-foundation
+services:
+  mysql-dev:
+    image: mysql:8.4.8
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root_password
+      WAREHOUSE_ENV: development
+    secrets:
+      - { source: devRoot, target: root_password }
+      - { source: devApp, target: app_password }
+      - { source: devMigration, target: migration_password }
+    ports: ["127.0.0.1:3307:3306"]
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./mysql/init.sh:/docker-entrypoint-initdb.d/10-warehouse.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+  mysql-test:
+    image: mysql:8.4.8
+    profiles: ["test"]
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root_password
+      WAREHOUSE_ENV: test
+      TEST_INSTANCE_ID: ${TEST_INSTANCE_ID:?Run setup-local.mjs first}
+    secrets:
+      - { source: testRoot, target: root_password }
+      - { source: testApp, target: app_password }
+      - { source: testMigration, target: migration_password }
+      - { source: shadow, target: shadow_password }
+    ports: ["127.0.0.1:3308:3306"]
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+      - ./mysql/init.sh:/docker-entrypoint-initdb.d/10-warehouse.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+  migrate:
+    profiles: ["app"]
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    working_dir: /workspace/backend
+    environment:
+      MIGRATION_DATABASE_URL_FILE: /run/secrets/database_url
+    secrets:
+      - { source: devMigrationUrl, target: database_url }
+    command: ["node", "scripts/migrate.js", "development"]
+    depends_on:
+      mysql-dev: { condition: service_healthy }
+  backend:
+    profiles: ["app"]
+    build: { context: .., dockerfile: infra/backend.Dockerfile }
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL_FILE: /run/secrets/database_url
+      CSRF_SECRET_FILE: /run/secrets/csrf_secret
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173
+      OPENAPI_FILE: /workspace/docs/runtime_api.json
+      PLANNED_OPENAPI_FILE: /workspace/docs/api_contract.yaml
+      AUTH_COOKIE_SECURE: "false" # Explicit exception for this localhost-only HTTP Compose app.
+      AUTH_ALLOW_SIMPLE_DEMO: "true" # User-approved named local demo accounts only.
+      ARGON2_MEMORY_COST: "65536"
+      ARGON2_TIME_COST: "3"
+      ARGON2_PARALLELISM: "1"
+    secrets:
+      - { source: devAppUrl, target: database_url }
+      - { source: csrf, target: csrf_secret }
+    ports: ["127.0.0.1:3000:3000"]
+    volumes:
+      - ../backend/uploads:/workspace/backend/uploads
+    depends_on:
+      mysql-dev: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+  frontend:
+    profiles: ["app"]
+    build: { context: .., dockerfile: infra/frontend.Dockerfile }
+    ports: ["127.0.0.1:8080:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+volumes:
+  mysql_dev_data: { name: warehouse_mysql_dev_data }
+  mysql_test_data: { name: warehouse_mysql_test_data }
+secrets:
+  devRoot: { file: ./secrets/devRoot }
+  devApp: { file: ./secrets/devApp }
+  devMigration: { file: ./secrets/devMigration }
+  testRoot: { file: ./secrets/testRoot }
+  testApp: { file: ./secrets/testApp }
+  testMigration: { file: ./secrets/testMigration }
+  shadow: { file: ./secrets/shadow }
+  csrf: { file: ./secrets/csrf }
+  devAppUrl: { file: ./secrets/devAppUrl }
+  devMigrationUrl: { file: ./secrets/devMigrationUrl }

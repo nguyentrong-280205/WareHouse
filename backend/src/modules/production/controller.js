@@ -1,0 +1,3 @@
+const {requestContext}=require('../warehouse/controller');
+function createProductionController(service){const result={};for(const [id,action]of [['plans.queue','queue'],['plans.list','list'],['plans.read','read'],['bomVersions.list','bomVersions'],['plans.materialDemands','materialDemands'],['plans.planningContext','planningContext']])result[id]=async(req,res)=>res.json(await service[action](requestContext(req,res)));for(const action of ['create','update','decide'])result['plans.'+action]=async(req,res)=>{const r=await service[action](requestContext(req,res));res.status(r.status).json(r.body);};return result;}
+module.exports={createProductionController};

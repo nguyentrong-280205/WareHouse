@@ -1,0 +1,3 @@
+const base=require('../../shared/business-repository');
+async function list(c,actor,{page=1,pageSize=20,status}={}){const params=[actor,...(status?[status]:[])],from=' FROM TiepNhanChuaDinhDanh u WHERE EXISTS(SELECT 1 AS present FROM TaiKhoan_Kho s WHERE s.warehouse_id=u.warehouse_id AND s.account_id=?)'+(status?' AND u.status=?':''),[[count]]=await c.execute('SELECT COUNT(*) AS n'+from,params);return{rows:(await c.execute('SELECT u.*'+from+' ORDER BY u.id DESC OFFSET '+((page-1)*pageSize)+' ROWS FETCH NEXT '+Number(pageSize)+' ROWS ONLY',params))[0],total:Number(count.n)};}
+module.exports={...base,list};

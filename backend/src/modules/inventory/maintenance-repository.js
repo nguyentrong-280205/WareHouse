@@ -1,0 +1,3 @@
+async function ready(c){return Number((await c.execute("SELECT COUNT(*) AS n FROM _sql_migrations WHERE version='202610160001_native_schema' AND state='APPLIED' AND finished_at IS NOT NULL"))[0][0].n)===1;}
+async function warehouses(c){return(await c.execute("SELECT DISTINCT warehouse_id FROM (SELECT warehouse_id FROM PhieuXuatKho WHERE status='DA_XAC_NHAN' AND expires_at<=SYSUTCDATETIME() UNION SELECT b.warehouse_id FROM BienBanKiemKe b JOIN KhoaViTriKiemKe k ON k.stocktake_id=b.id WHERE k.expires_at<=SYSUTCDATETIME()) x ORDER BY warehouse_id OFFSET 0 ROWS FETCH NEXT 100 ROWS ONLY"))[0];}
+module.exports={ready,warehouses};

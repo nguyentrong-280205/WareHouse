@@ -1,0 +1,19 @@
+# Gợi ý vật tư và xưởng có thể thay đổi — 23/10/2026
+
+Kết quả triển khai: đã cập nhật Docker `warehouse`, thêm 20 vật tư có tồn khởi tạo, 15 BOM gợi ý và 1.820 dòng lịch mới cho bốn xưởng. Đã cấp 24 liên kết phạm vi cho sáu tài khoản thuộc đúng ba nhóm được duyệt. Migration `202610230002_planning_material_overrides` đã APPLIED trên database phát triển và kiểm thử; không sửa migration cũ.
+
+Đối chiếu chỉ đọc đơn hiện hữu cần 36 chai TP002 trả về 36 vỏ chai, 36 nắp, 36 nhãn, 2 thùng carton, 18 lít nước, 1,44 kg đường, 0,018 kg hương Cola và 0,108 kg CO2; mỗi dòng có tồn thực tế. Lịch 23–25/10 trả về XSX002 ưu tiên và XSX003 thay thế đủ năng lực. Đây là đối chiếu dữ liệu, chưa phải kiểm thử tạo/duyệt kế hoạch.
+
+Đã kiểm cú pháp CommonJS, phân tích cú pháp 54 file frontend, xác thực OpenAPI và build Vite thành công. Backend/frontend/SQL Server báo healthy. Bộ unit/integration/E2E/regression vẫn hoãn; trạng thái chức năng là **DA_CODE_CHUA_TEST**. Người dùng mở lại form Thêm mới kế hoạch, chọn đơn và lịch để xem gợi ý; có thể thêm/xóa/sửa vật tư và đổi xưởng trước khi lưu. Xem [data.md](../data.md) để tra bộ dữ liệu mẫu.
+
+Người dùng giao tự chọn bộ vật tư mẫu, hiển thị tồn, cho người lập kế hoạch thêm/xóa/sửa vật tư và đổi xưởng gợi ý. Đã xác nhận riêng cho phép cấp phạm vi4xưởng mới cho các tài khoản lập kế hoạch, giám đốc và xưởng sản xuất; thay quyết định giữ scope cũ trong đúng ba nhóm này, không cấp cho khách hàng hoặc nhóm khác.
+
+Mỗi thành phẩm có một BOM gợi ý dữ liệu đồ án, không phải công thức nhà sản xuất hay hướng dẫn sản xuất thực tế. Bao bì theo loại/dung tích, nguyên liệu mô phỏng gồm nước, đường, hương, trà và CO2 tùy nhóm. Người lập chọn vật tư từ danh mục, nhập lượng tuyệt đối cho sản lượng của từng phân công; không cho nhập số âm/0, sai đơn vị cơ sở, vật tư khóa hoặc lặp vật tư. Tồn/khả dụng là số thực đọc từ kho trong phạm vi tài khoản, không mock.
+
+Không sửa BOM chung khi chỉnh kế hoạch: bổ sung DinhMuc.source_bom_id (FK tự tham chiếu) và is_plan_override BIT. Khi lưu phân công có danh sách vật tư chỉnh, tạo phiên bản BOM riêng bất biến, output_qty_base đúng sản lượng, ChiTietDinhMuc.qty_per_output đúng lượng người lập đã chốt. ChiTietKeHoachSanXuat.bom_version_id trỏ snapshot này. UC03 tính nhu cầu từ snapshot như cũ, nên mua/cấp phát và kế hoạch cũ giữ tính nhất quán. BOM riêng không xuất hiện trong gợi ý cho kế hoạch mới. Không tạo bảng/lớp nghiệp vụ mới; không sửa SRS/Domain nguồn hoặc migration đã APPLIED. Migration mới202610230002_planning_material_overrides chỉ thêm metadata/FK/CHECK vào DinhMuc.
+
+Gợi ý xưởng theo nhóm XSX001 đóng lon, XSX002 PET có gas, XSX003 trà/trái cây, XSX004 nước tinh khiết; lịch mẫu23/10/2026–31/12/2026 mỗi ngày 9.600 đơn vị cơ sở/SKU, chỉ là cấu hình đồ án. Chọn xưởng ưu tiên khi đủ năng lực và scope; có thể đổi sang ứng viên đủ điều kiện khác. Không tự chọn xưởng khóa/hết năng lực hoặc bỏ kiểm cạnh tranh lúc lưu. Chỉ tạo lịch còn thiếu, giữ lịch/năng lực đã cấu hình.
+
+Tồn mẫu được khởi tạo tại một vị trí mới riêng trong kho nguyên liệu bằng quy trình kiểm kê và điều chỉnh dương đã có: hai lượt đếm độc lập, hội đồng xác nhận, QLK xác minh, giám đốc duyệt, StockPosting/ledger cùng transaction. Không tạo PO/kế hoạch giả để lách nguồn nhập, không cộng trực tiếp qty_on_hand. Chứng từ/bằng chứng ghi rõ dữ liệu khởi tạo đồ án; không nghiệm thu UC. Không sửa tồn/lô/chứng từ cũ. Tồn mẫu chỉ tạo một lần; restart không nạp lại lượng đã tiêu thụ. Thông số mẫu và kết quả cập nhật data.md.
+
+Seed chạy atomic trong warehouse_db Docker với guard identity/principal, applock và completion AuditLog. Scope chỉ cấp một lần theo phê duyệt, không cấp lại quyền bị thu hồi khi restart. Không thay HTTT02, không reset/drop/commit. Kiểm cú pháp/OpenAPI/build/health và đọc dữ liệu sau seed; bộ unit/integration/E2E/regression tiếp tục hoãn.

@@ -1,0 +1,9 @@
+# Lỗi Invalid request khi lưu đơn mua — 27/10/2026
+
+Phát hiện từ code/contract: PurchaseInput bắt buộc `currency=VND` nhưng cấu hình form chưa có trường currency, nên payload() loại nó khỏi request. Báo giá trả đơn giá DECIMAL có phần lẻ, còn pattern Quantity/UnitPrice và lượng mua nội tuyến bị escape dấu chấm hai lần: từ chối chuỗi hợp lệ `5.000000`/`170000.000000`.
+
+Sửa: bổ sung trường hidden currency mặc định VND trong cấu hình form, cho cả Thêm mới và Lập đơn từ yêu cầu. Giữ trường này bắt buộc và enum VND ở backend, không bỏ validation. Sửa dấu chấm trong regex các schema Quantity/UnitPrice dùng chung và PurchaseInput.quantity, đồng bộ API planned/runtime. Vẫn tối đa14chữ số nguyên/6chữ số lẻ, nghiệp vụ d.positive/discrete/quota và DECIMAL20,6 giữ nguyên. UI hiển thị170.000 nhưng state/API vẫn170000.000000 hoặc170000, không gửi dấu nhóm hàng nghìn.
+
+Giao diện lỗi form hiện tên trường/dòng từ fieldErrors thay thông báo tiếng Anh chung; không hiển thị/log giá trị nhạy cảm. Không thay database, migration APPLIED, giá hoặc dữ liệu PO. Không tự lưu PO thử. Code DA_CODE_CHUA_TEST, không chạy unit/integration/E2E/regression; chỉ kiểm contract/cú pháp/build/health. Bằng chứng này không thay nghiệm thu giao dịch lưu thật.
+
+Bằng chứng27/10: log backend có VALIDATION_FAILED/422 trùng tình huống người dùng báo. Đối chiếu cấu hình sau sửa: currency vẫn required; ví dụ Quantity5.000000 và example UnitPrice1250.125000 khớp regex. OpenAPI foundation/planned/runtime xác thực thành công; 61file frontend phân tích cú pháp và CommonJS trong image kiểm cú pháp thành công. Docker build backend/frontend thành công, cập nhật riêng hai dịch vụ bằng --no-deps, ba dịch vụ healthy; health qua frontend trả database connected. Không chạy bộ test, không POST đơn mua/migration/seed. Git status giữ thay đổi cũ, không commit/reset.
