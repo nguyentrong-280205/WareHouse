@@ -781,6 +781,105 @@
         "x-fs-policy-revision": "FS-20261015"
       }
     },
+    "/materials/{id}/unlock": {
+      "post": {
+        "operationId": "materials.unlock",
+        "summary": "materials.unlock — UC10",
+        "tags": [
+          "UC10"
+        ],
+        "description": "Mở khóa trước khi sửa; chỉ đổi trạng thái LOCKED→ACTIVE, không sửa field trong cùng request.",
+        "x-uc": "UC10",
+        "x-permissions": [
+          "materials.write"
+        ],
+        "x-draft": true,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$",
+              "example": "42"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/E400"
+          },
+          "401": {
+            "$ref": "#/components/responses/E401"
+          },
+          "403": {
+            "$ref": "#/components/responses/E403"
+          },
+          "404": {
+            "$ref": "#/components/responses/E404"
+          },
+          "409": {
+            "$ref": "#/components/responses/E409"
+          },
+          "422": {
+            "$ref": "#/components/responses/E422"
+          },
+          "500": {
+            "$ref": "#/components/responses/E500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "x-fs-policy-revision": "FS-20261015"
+      }
+    },
     "/products": {
       "get": {
         "operationId": "products.list",
@@ -1254,6 +1353,105 @@
         "x-fs-policy-revision": "FS-20261015"
       }
     },
+    "/products/{id}/unlock": {
+      "post": {
+        "operationId": "products.unlock",
+        "summary": "products.unlock — UC25",
+        "tags": [
+          "UC25"
+        ],
+        "description": "Mở khóa trước khi sửa; chỉ đổi trạng thái LOCKED→ACTIVE, không sửa field trong cùng request.",
+        "x-uc": "UC25",
+        "x-permissions": [
+          "products.write"
+        ],
+        "x-draft": true,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$",
+              "example": "42"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/E400"
+          },
+          "401": {
+            "$ref": "#/components/responses/E401"
+          },
+          "403": {
+            "$ref": "#/components/responses/E403"
+          },
+          "404": {
+            "$ref": "#/components/responses/E404"
+          },
+          "409": {
+            "$ref": "#/components/responses/E409"
+          },
+          "422": {
+            "$ref": "#/components/responses/E422"
+          },
+          "500": {
+            "$ref": "#/components/responses/E500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "x-fs-policy-revision": "FS-20261015"
+      }
+    },
     "/warehouses": {
       "get": {
         "operationId": "warehouses.list",
@@ -1636,6 +1834,105 @@
           "UC19"
         ],
         "description": "Kiểm quyền/scope, state và version theo SRS; không tự bỏ điều kiện nguồn.",
+        "x-uc": "UC19",
+        "x-permissions": [
+          "warehouses.write"
+        ],
+        "x-draft": true,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$",
+              "example": "42"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarehouseResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/E400"
+          },
+          "401": {
+            "$ref": "#/components/responses/E401"
+          },
+          "403": {
+            "$ref": "#/components/responses/E403"
+          },
+          "404": {
+            "$ref": "#/components/responses/E404"
+          },
+          "409": {
+            "$ref": "#/components/responses/E409"
+          },
+          "422": {
+            "$ref": "#/components/responses/E422"
+          },
+          "500": {
+            "$ref": "#/components/responses/E500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "x-fs-policy-revision": "FS-20261015"
+      }
+    },
+    "/warehouses/{id}/unlock": {
+      "post": {
+        "operationId": "warehouses.unlock",
+        "summary": "warehouses.unlock — UC19",
+        "tags": [
+          "UC19"
+        ],
+        "description": "Mở khóa trước khi sửa; chỉ đổi trạng thái LOCKED→ACTIVE, không sửa field trong cùng request.",
         "x-uc": "UC19",
         "x-permissions": [
           "warehouses.write"
@@ -2209,6 +2506,105 @@
         "x-fs-policy-revision": "FS-20261015"
       }
     },
+    "/material-lots/{id}/unlock": {
+      "post": {
+        "operationId": "materialLots.unlock",
+        "summary": "materialLots.unlock — UC30",
+        "tags": [
+          "UC30"
+        ],
+        "description": "Mở khóa trước khi sửa; chỉ đổi trạng thái LOCKED→ACTIVE, không sửa field trong cùng request.",
+        "x-uc": "UC30",
+        "x-permissions": [
+          "materialLots.write"
+        ],
+        "x-draft": true,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$",
+              "example": "42"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialLotResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/E400"
+          },
+          "401": {
+            "$ref": "#/components/responses/E401"
+          },
+          "403": {
+            "$ref": "#/components/responses/E403"
+          },
+          "404": {
+            "$ref": "#/components/responses/E404"
+          },
+          "409": {
+            "$ref": "#/components/responses/E409"
+          },
+          "422": {
+            "$ref": "#/components/responses/E422"
+          },
+          "500": {
+            "$ref": "#/components/responses/E500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "x-fs-policy-revision": "FS-20261015"
+      }
+    },
     "/product-lots": {
       "get": {
         "operationId": "productLots.list",
@@ -2600,6 +2996,105 @@
           "UC20"
         ],
         "description": "Kiểm quyền/scope, state và version theo SRS; không tự bỏ điều kiện nguồn.",
+        "x-uc": "UC20",
+        "x-permissions": [
+          "productLots.write"
+        ],
+        "x-draft": true,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$",
+              "example": "42"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductLotResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/E400"
+          },
+          "401": {
+            "$ref": "#/components/responses/E401"
+          },
+          "403": {
+            "$ref": "#/components/responses/E403"
+          },
+          "404": {
+            "$ref": "#/components/responses/E404"
+          },
+          "409": {
+            "$ref": "#/components/responses/E409"
+          },
+          "422": {
+            "$ref": "#/components/responses/E422"
+          },
+          "500": {
+            "$ref": "#/components/responses/E500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "x-fs-policy-revision": "FS-20261015"
+      }
+    },
+    "/product-lots/{id}/unlock": {
+      "post": {
+        "operationId": "productLots.unlock",
+        "summary": "productLots.unlock — UC20",
+        "tags": [
+          "UC20"
+        ],
+        "description": "Mở khóa trước khi sửa; chỉ đổi trạng thái LOCKED→ACTIVE, không sửa field trong cùng request.",
         "x-uc": "UC20",
         "x-permissions": [
           "productLots.write"

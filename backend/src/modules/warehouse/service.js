@@ -1,6 +1,6 @@
 const repo = require('./repository');
 const d = require('../../shared/decimal');
-const { fail, requireRow, expectVersion, scope, businessDate, now } = require('../../shared/business-context');
+const { fail, requireRow, expectVersion, expectState, scope, businessDate, now } = require('../../shared/business-context');
 function serialize(row, entity) {
   const result = { id:String(row.id),version:Number(row.version),status:row.status };
   for (const [key,column] of Object.entries(entity.fields)) if (row[column] !== null && row[column] !== undefined) result[key] = key === 'requiresExpiry' ? Boolean(row[column]) : key.endsWith('Id') ? String(row[column]) : row[column];
@@ -91,8 +91,13 @@ function createWarehouseService(context) {
       let before, id=req.params.id;
       if (action !== 'create') { before=requireRow(await repo.one(c,entity.table,{id},{lock:true})); expectVersion(before,req.body.expectedVersion); if (entity.scoped) scope(req.principal,id); }
       if (action === 'lock') {
+        expectState(before,['ACTIVE']);
         await repo.update(c,entity.table,{id},{status:'LOCKED',version:Number(before.version)+1,updated_at:now()});
+      } else if (action === 'unlock') {
+        expectState(before,['LOCKED']);
+        await repo.update(c,entity.table,{id},{status:'ACTIVE',version:Number(before.version)+1,updated_at:now()});
       } else {
+        if (before) expectState(before,['ACTIVE']);
         const data={...req.body};
         if(kind==='materialLots'){
           if(before&&data.itemId!==undefined&&String(data.itemId)!==String(before.material_id))fail(409,'MATERIAL_LOT_IMMUTABLE','Một lô chỉ thuộc một nguyên liệu và không được đổi nguyên liệu sau khi tạo.');
@@ -109,7 +114,7 @@ function createWarehouseService(context) {
           const immutable=kind.endsWith('Lots')?['itemId','manufacturedOn','expiresOn','packagingVersionId']:['baseUnitId','containerType','volumeMl'];
           if (immutable.some(k=>data[k]!==undefined && String(data[k])!==String(before[entity.fields[k]])) && await repo.used(c,entity,before.id)) fail(409,'HISTORY_IMMUTABLE','Không sửa định danh/quy đổi đã phát sinh lịch sử.');
         }
-        const values=Object.fromEntries(Object.entries(entity.fields).filter(([key])=>data[key]!==undefined).map(([key,col])=>[col,typeof data[key]==='string'?data[key].trim():data[key]]));
+        const values=Object.fromEntries(Object.entries(entity.fields).filter(([key])=>key!=='status'&&data[key]!==undefined).map(([key,col])=>[col,typeof data[key]==='string'?data[key].trim():data[key]]));
         if (action === 'create') {
           id=await repo.insert(c,entity.table,{...values,created_by_id:req.principal.accountId});
           if (entity.scoped) await repo.insert(c,'TaiKhoan_Kho',{account_id:req.principal.accountId,warehouse_id:id});
