@@ -1,4 +1,8 @@
-import {formatQuantity} from '../utils/formatNumber';
+import { formatQuantity } from '../utils/formatNumber';
+import { formatBusinessValue } from '../utils/formatDate';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/useAuth';
+import { canAccessPath } from '../auth/access';
 import React, { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import AppLayout from '../components/layout/AppLayout';
@@ -10,78 +14,282 @@ import LowStockTable from '../components/dashboard/LowStockTable';
 import ExpiringLotsTable from '../components/dashboard/ExpiringLotsTable';
 import WarehouseActivity from '../components/dashboard/WarehouseActivity';
 import WarehouseCapacity from '../components/dashboard/WarehouseCapacity';
-import {useDashboardData,quantityInt,quantityText,scaledInt,vnDate,utcDate,activityRows} from '../features/live-overview';
+import {
+	useDashboardData,
+	quantityInt,
+	quantityText,
+	scaledInt,
+	vnDate,
+	utcDate,
+	activityRows
+} from '../features/live-overview';
+
+const stockStatuses = [
+	{ key: 'DAT', name: 'Đạt QC', color: '#2563eb' },
+	{ key: 'QUARANTINE', name: 'Cách ly', color: '#d97706' },
+	{ key: 'FAILED', name: 'Không đạt', color: '#e11d48' },
+	{ key: 'EXPIRED', name: 'Hết hạn', color: '#64748b' }
+];
 
 function DashboardPage() {
-  const live=useDashboardData(),[unitId,setUnitId]=useState(''),today=vnDate();
-  const unitLabel=live.units.find(u=>String(u.id)===unitId)?.name||'';
-  const inventory=live.inventory.filter(r=>r.unitId===unitId),movements=live.movements.filter(r=>r.unitId===unitId);
-  const total=inventory.reduce((n,r)=>n+quantityInt(r.onHand),0n),buckets=new Map();for(const r of inventory)buckets.set(r.qualityBucket,(buckets.get(r.qualityBucket)||0n)+quantityInt(r.onHand));
-  const bucketNames={DAT:'Đạt QC',QUARANTINE:'Cách ly',FAILED:'Không đạt',EXPIRED:'Hết hạn'},colors=['#2563eb','#f59e0b','#f43f5e','#64748b'];
-  const structure=[...buckets].map(([kind,n],i)=>({name:bucketNames[kind],value:Number(quantityText(n)),formattedValue:formatQuantity(quantityText(n))+' '+unitLabel,percentage:total?String(Number(n*10000n/total)/100):'0',color:colors[i]}));
-  const dates=Array.from({length:7},(_,i)=>new Date(Date.parse(today+'T00:00:00Z')-(6-i)*86400000).toISOString().slice(0,10));
-  const dayOf=r=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(utcDate(r.createdAt));
-  const inOut=unitId?dates.map(day=>{const rows=movements.filter(r=>dayOf(r)===day),up=rows.reduce((n,r)=>n+(quantityInt(r.quantityDelta)>0n?quantityInt(r.quantityDelta):0n),0n),down=rows.reduce((n,r)=>n+(quantityInt(r.quantityDelta)<0n?-quantityInt(r.quantityDelta):0n),0n);return{date:day.slice(5),importQty:Number(quantityText(up)),exportQty:Number(quantityText(down)),importRaw:formatQuantity(quantityText(up)),exportRaw:formatQuantity(quantityText(down))};}):[];
-  let balance=total;const trend=[];if(unitId)for(const day of [...dates].reverse()){trend.unshift({month:day.slice(5),stock:Number(quantityText(balance)),stockRaw:formatQuantity(quantityText(balance))});balance-=movements.filter(r=>dayOf(r)===day).reduce((n,r)=>n+quantityInt(r.quantityDelta),0n);}
-  const low=live.alerts.filter(r=>r.type==='LOW_STOCK'),expiry=live.alerts.filter(r=>['NEAR_EXPIRY','EXPIRED'].includes(r.type));
-  const countToday=field=>new Set(live.movements.filter(r=>r[field]&&dayOf(r)===today).map(r=>r[field])).size;
-  const kpiCardsData=[{id:'items',title:'Mặt hàng có tồn',value:new Set(live.inventory.filter(r=>quantityInt(r.onHand)>0n).map(r=>r.itemKind+':'+r.itemId)).size,iconName:'Boxes',colorScheme:'blue'},{id:'receipts',title:'Phiếu nhập hôm nay',value:countToday('receiptId'),iconName:'Download',colorScheme:'green'},{id:'issues',title:'Phiếu xuất hôm nay',value:countToday('issueId'),iconName:'Upload',colorScheme:'orange'},{id:'expiry',title:'Cảnh báo hạn sử dụng',value:expiry.length,iconName:'Clock',colorScheme:'red'},{id:'low',title:'Cảnh báo tồn thấp',value:low.length,iconName:'AlertTriangle',colorScheme:'amber'}].map(c=>({...c,value:live.loading?'…':live.error?'—':String(c.value)}));
-  const capacity=live.warehouses.map(w=>({id:w.id,title:w.name,used:w.occupiedCapacity,total:w.capacity,unit:w.capacityUnitCode,percentage:quantityInt(w.capacity)>0n?Number(scaledInt(w.occupiedCapacity,15)*10000n/(quantityInt(w.capacity)*1000000000n))/100:0,iconName:'Warehouse',color:'blue'}));
+	const live = useDashboardData(),
+		[unitId, setUnitId] = useState(''),
+		today = vnDate();
+	const { session } = useAuth();
+	const unitLabel = live.units.find((u) => String(u.id) === unitId)?.name || '';
+	const inventory = live.inventory.filter((r) => r.unitId === unitId),
+		movements = live.movements.filter((r) => r.unitId === unitId);
+	const total = inventory.reduce((n, r) => n + quantityInt(r.onHand), 0n),
+		buckets = new Map();
+	for (const r of inventory)
+		buckets.set(r.qualityBucket, (buckets.get(r.qualityBucket) || 0n) + quantityInt(r.onHand));
+	const structure = stockStatuses.flatMap(({ key, name, color }) => {
+		const quantity = buckets.get(key) || 0n;
+		if (!quantity) return [];
+		const share = Number((quantity * 10000n) / total) / 100;
+		return [
+			{
+				name,
+				value: Number(quantityText(quantity)),
+				formattedValue: `${formatQuantity(quantityText(quantity))} ${unitLabel}`,
+				percentage: share === 0 ? '< 0,01' : formatQuantity(String(share)),
+				color
+			}
+		];
+	});
+	const dates = Array.from({ length: 7 }, (_, i) =>
+		new Date(Date.parse(today + 'T00:00:00Z') - (6 - i) * 86400000).toISOString().slice(0, 10)
+	);
+	const dayOf = (r) =>
+		new Intl.DateTimeFormat('en-CA', {
+			timeZone: 'Asia/Ho_Chi_Minh',
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit'
+		}).format(utcDate(r.createdAt));
+	const inOut = unitId
+		? dates.map((day) => {
+				const rows = movements.filter((r) => dayOf(r) === day),
+					up = rows.reduce(
+						(n, r) =>
+							n +
+							(quantityInt(r.quantityDelta) > 0n ? quantityInt(r.quantityDelta) : 0n),
+						0n
+					),
+					down = rows.reduce(
+						(n, r) =>
+							n +
+							(quantityInt(r.quantityDelta) < 0n
+								? -quantityInt(r.quantityDelta)
+								: 0n),
+						0n
+					);
+				return {
+					date: day.slice(5).split('-').reverse().join('/'),
+					importQty: Number(quantityText(up)),
+					exportQty: Number(quantityText(down)),
+					importRaw: formatQuantity(quantityText(up)),
+					exportRaw: formatQuantity(quantityText(down))
+				};
+			})
+		: [];
+	let balance = total;
+	const trend = [];
+	if (unitId)
+		for (const day of [...dates].reverse()) {
+			trend.unshift({
+				month: day.slice(5).split('-').reverse().join('/'),
+				stock: Number(quantityText(balance)),
+				stockRaw: formatQuantity(quantityText(balance))
+			});
+			balance -= movements
+				.filter((r) => dayOf(r) === day)
+				.reduce((n, r) => n + quantityInt(r.quantityDelta), 0n);
+		}
+	const low = live.alerts.filter((r) => r.type === 'LOW_STOCK'),
+		expiry = live.alerts.filter((r) => ['NEAR_EXPIRY', 'EXPIRED'].includes(r.type));
+	const alertMessage = live.loading
+		? 'Đang tải cảnh báo…'
+		: live.error
+			? 'Dữ liệu cảnh báo chưa tải được.'
+			: undefined;
+	const countToday = (field) =>
+		new Set(live.movements.filter((r) => r[field] && dayOf(r) === today).map((r) => r[field]))
+			.size;
+	const kpiCardsData = [
+		{
+			id: 'items',
+			title: 'Mặt hàng có tồn',
+			value: new Set(
+				live.inventory
+					.filter((r) => quantityInt(r.onHand) > 0n)
+					.map((r) => r.itemKind + ':' + r.itemId)
+			).size,
+			iconName: 'Boxes',
+			colorScheme: 'blue'
+		},
+		{
+			id: 'receipts',
+			title: 'Phiếu nhập hôm nay',
+			value: countToday('receiptId'),
+			iconName: 'Download',
+			colorScheme: 'green'
+		},
+		{
+			id: 'issues',
+			title: 'Phiếu xuất hôm nay',
+			value: countToday('issueId'),
+			iconName: 'Upload',
+			colorScheme: 'orange'
+		},
+		{
+			id: 'expiry',
+			title: 'Cảnh báo hạn sử dụng',
+			value: expiry.length,
+			iconName: 'Clock',
+			colorScheme: 'red'
+		},
+		{
+			id: 'low',
+			title: 'Cảnh báo tồn thấp',
+			value: low.length,
+			iconName: 'AlertTriangle',
+			colorScheme: 'amber'
+		}
+	].map((c) => ({ ...c, value: live.loading ? '…' : live.error ? '—' : String(c.value) }));
+	const capacity = live.warehouses.map((w) => ({
+		id: w.id,
+		title: w.name,
+		used: w.occupiedCapacity,
+		total: w.capacity,
+		unit: w.capacityUnitCode,
+		percentage:
+			quantityInt(w.capacity) > 0n
+				? Number(
+						(scaledInt(w.occupiedCapacity, 15) * 10000n) /
+							(quantityInt(w.capacity) * 1000000000n)
+					) / 100
+				: 0,
+		iconName: 'Warehouse',
+		color: 'blue'
+	}));
 
-  return (
-    <AppLayout
-      title="Dashboard"
-      subtitle="Theo dõi tình hình tồn kho và hoạt động kho theo thời gian thực"
-    >
-      <div className="space-y-6">
-        {live.error&&<p role="alert" className="text-sm text-rose-600 bg-rose-50 p-3 rounded-xl">{live.error}</p>}
-        {live.configurationRequired.length>0&&<p className="text-sm text-amber-800 bg-amber-50 p-3 rounded-xl">{live.configurationRequired.length} mặt hàng/kho chưa đặt ngưỡng cảnh báo.</p>}
-        {/* Top bar filter right aligned */}
-        <div className="flex justify-end -mt-2">
-          <div className="inline-flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200/80 shadow-2xs text-xs font-semibold text-slate-700 hover:border-slate-300 transition-colors cursor-pointer">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <span>{dates[0]} — {today} · ngày Việt Nam</span><select aria-label="Đơn vị của biểu đồ" value={unitId} onChange={e=>setUnitId(e.target.value)} className="bg-white outline-none"><option value="">Chọn đơn vị để xem biểu đồ</option>{live.units.filter(u=>u.dimension!=='CAPACITY_VOLUME').map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select>
-          </div>
-        </div>
+	return (
+		<AppLayout
+			title="Tổng quan kho"
+			subtitle="Tồn kho, cảnh báo và biến động trong phạm vi được cấp"
+		>
+			<div className="space-y-6">
+				{live.error && (
+					<p role="alert" className="wms-notice wms-tone-danger">
+						{live.error}
+					</p>
+				)}
+				{live.configurationRequired.length > 0 && (
+					<p className="wms-notice wms-tone-warning">
+						{live.configurationRequired.length} mặt hàng/kho chưa đặt ngưỡng cảnh báo.
+						{session.permissions.includes('reports.configureAlerts') && (
+							<Link to="/reports/alert-rules" className="ml-2 underline">
+								Cấu hình cảnh báo
+							</Link>
+						)}
+					</p>
+				)}
+				<div className="wms-toolbar text-sm">
+					<div className="flex items-center gap-2 text-slate-600">
+						<Calendar aria-hidden="true" className="size-4 shrink-0" />
+						<span className="tabular-nums">
+							{formatBusinessValue(dates[0])} – {formatBusinessValue(today)} (giờ Việt
+							Nam)
+						</span>
+					</div>
+					<label className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
+						<span className="font-medium">Đơn vị biểu đồ</span>
+						<select
+							value={unitId}
+							onChange={(e) => setUnitId(e.target.value)}
+							className="wms-input max-w-full sm:w-auto"
+						>
+							<option value="">Chọn đơn vị</option>
+							{live.units
+								.filter((u) => u.dimension !== 'CAPACITY_VOLUME')
+								.map((u) => (
+									<option key={u.id} value={u.id}>
+										{u.name}
+									</option>
+								))}
+						</select>
+					</label>
+				</div>
 
-        {/* 5 KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {kpiCardsData.map((card) => (
-            <KPICard key={card.id} {...card} />
-          ))}
-        </div>
+				{/* 5 KPI Cards */}
+				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+					{kpiCardsData.map((card) => (
+						<KPICard key={card.id} {...card} />
+					))}
+				</div>
 
-        {/* 3 Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          <div className="lg:col-span-5 min-h-[340px]">
-            <InventoryChart data={inOut} unitLabel={unitLabel}/>
-          </div>
-          <div className="lg:col-span-3 min-h-[340px]">
-            <StockStructureChart data={structure} totalStockFormatted={unitId?formatQuantity(quantityText(total)):'—'} unitLabel={unitLabel}/>
-          </div>
-          <div className="lg:col-span-4 min-h-[340px]">
-            <InventoryTrendChart data={trend} unitLabel={unitLabel}/>
-          </div>
-        </div>
+				{/* 2 Tables Grid */}
+				<div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+					<LowStockTable
+						emptyMessage={alertMessage}
+						data={low.map((r) => ({
+							code: r.itemCode || '—',
+							name: r.itemName || '—',
+							warehouse: r.warehouseName || '—',
+							currentStock: formatQuantity(r.availableBase),
+							minStock: formatQuantity(r.thresholdBase),
+							status: 'Dưới ngưỡng'
+						}))}
+					/>
+					<ExpiringLotsTable
+						emptyMessage={alertMessage}
+						data={expiry.map((r) => ({
+							code: r.lotCode || '—',
+							item: r.itemName || '—',
+							expiryDate: formatBusinessValue(r.expiresOn),
+							daysLeft: r.daysRemaining,
+							status: r.type === 'EXPIRED' ? 'Đã hết hạn' : 'Sắp hết hạn'
+						}))}
+					/>
+				</div>
 
-        {/* 2 Tables Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <LowStockTable data={low.map(r=>({code:(r.itemKind==='MATERIAL'?'NL':'TP')+' #'+r.itemId,name:'Kho #'+r.warehouseId,currentStock:r.availableBase,minStock:r.thresholdBase,status:'Dưới ngưỡng'}))}/>
-          <ExpiringLotsTable data={expiry.map(r=>({code:'#'+r.lotId,item:(r.itemKind==='MATERIAL'?'NL':'TP')+' #'+r.itemId,expiryDate:r.expiresOn,daysLeft:r.daysRemaining,status:r.type==='EXPIRED'?'Đã hết hạn':'Sắp hết hạn'}))}/>
-        </div>
+				{unitId && !live.error && !live.loading && (
+					<section
+						aria-label="Biểu đồ tồn và biến động"
+						className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-12"
+					>
+						<div className="min-w-0 xl:col-span-5">
+							<InventoryChart data={inOut} unitLabel={unitLabel} />
+						</div>
+						<div className="min-w-0 xl:col-span-3">
+							<StockStructureChart
+								data={structure}
+								totalStockFormatted={formatQuantity(quantityText(total))}
+								unitLabel={unitLabel}
+							/>
+						</div>
+						<div className="min-w-0 xl:col-span-4">
+							<InventoryTrendChart data={trend} unitLabel={unitLabel} />
+						</div>
+					</section>
+				)}
 
-        {/* Bottom Row: Activity + Capacity */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7">
-            <WarehouseActivity activities={activityRows(live.movements)}/>
-          </div>
-          <div className="lg:col-span-5">
-            <WarehouseCapacity data={capacity}/>
-          </div>
-        </div>
-      </div>
-    </AppLayout>
-  );
+				{/* Bottom Row: Activity + Capacity */}
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+					<div className="lg:col-span-7">
+						<WarehouseActivity activities={activityRows(live.movements)} />
+					</div>
+					<div className="lg:col-span-5">
+						<WarehouseCapacity
+							data={capacity}
+							showLocationsLink={canAccessPath(session, '/storage-locations')}
+						/>
+					</div>
+				</div>
+			</div>
+		</AppLayout>
+	);
 }
 
 export default DashboardPage;

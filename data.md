@@ -199,7 +199,7 @@ Giữ nguyên HTTT02/Windows .env/data và các MySQL/Prisma archives. Chế đ�
 
 ## Tài khoản dễ nhớ bổ sung theo yêu cầu
 
-Đã tạo thêm9tài khoản bên dưới trong `warehouse_db`, mỗi vai trò một tài khoản. **Mật khẩu chung là `123456`** theo yêu cầu của người dùng, chỉ dùng cho bộ demo cục bộ.
+Đã tạo thêm9tài khoản bên dưới trong `warehouse_db`, mỗi vai trò một tài khoản. **Mật khẩu chung là `[mật khẩu cục bộ trong .artifacts]`** theo yêu cầu của người dùng, chỉ dùng cho bộ demo cục bộ.
 
 | Vai trò | Tên đăng nhập | Mật khẩu demo |
 |---|---|---|

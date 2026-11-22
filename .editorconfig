@@ -1,0 +1,29 @@
+root = true
+
+[*.{js,jsx,cjs,mjs,css,html,json,ps1,sh,conf}]
+charset = utf-8
+indent_style = tab
+indent_size = tab
+tab_width = 4
+end_of_line = lf
+insert_final_newline = true
+
+[*.{yaml,yml}]
+indent_style = space
+indent_size = 2
+
+[docs/**]
+indent_style = space
+indent_size = 2
+
+[backend/prisma/**]
+indent_style = unset
+indent_size = unset
+end_of_line = unset
+insert_final_newline = unset
+
+[infra/mysql/**]
+indent_style = unset
+indent_size = unset
+end_of_line = unset
+insert_final_newline = unset

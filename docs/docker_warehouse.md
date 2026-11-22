@@ -1,3 +1,5 @@
+**Bổ sung 16/11/2026:** nhánh cài mới có cấu hình nhập thành phẩm đã duyệt (scope qc01/quanlykho01 và hệ số TP001–TP015) trước marker hoàn tất. Volume đã hoàn tất không tự cấp lại scope hoặc nạp lại tồn/chứng từ. Bản sửa không có migration mới và chưa triển khai vì Docker Desktop không kết nối. [Chi tiết](system_fixes_20261116.md).
+
 Cập nhật 28/10/2026: dùng duy nhất tài khoản xưởng `xuong01` quản lý cả ba xưởng XSX002 (Nước giải khát), XSX003 (Trà và nước trái cây), XSX004 (Nước tinh khiết). Mở lại xuong01, giữ mật khẩu và scope kho hiện có; khóa xuong_ngk/xuong_tra/xuong_nuoc và giữ uc01.workshop khóa, thu hồi phiên cả năm tài khoản. Không xóa tài khoản hoặc lịch sử, không gộp thêm xưởng. Script use-shared-workshop-account.js chạy transaction có guard và audit một lần sau consolidate; chạy lại không tự mở khóa/cấp lại scope. Các ghi nhận dùng ba tài khoản riêng bên dưới là lịch sử đã được thay thế. Không migration, không thay tồn/BOM/giá, không test nghiệp vụ/commit/reset.
 
 # Chạy và chia sẻ hệ thống Docker warehouse
@@ -30,6 +32,11 @@ docker run --rm -v "${PWD}:/workspace" -w /workspace node:24.21.0-bookworm-slim 
 docker compose up -d --build
 ```
 
+Sau khi cài mới, mở `http://localhost:8080` và nhập mật khẩu demo cục bộ **`123456`** cho các tài khoản sau.
+
+- `khach01`, `kehoach01`, `muahang01`, `giamdoc01`, `quanlykho01`, `nhanvienkho01`, `qc01`, `xuong01`, `kiemke01`.
+- `uc01.staff`, `nguyentrong`, `vuthinh`, `truongthinh`.
+
 Trên máy phát triển hiện tại cũng có thể dùng:
 
 ```powershell
@@ -46,6 +53,8 @@ docker compose ps -a
 ```
 
 Không còn cần `-f infra/compose.yaml --profile app` khi đứng tại root: compose.yaml ở root include cấu hình infra. Docker Desktop hiển thị nhóm **warehouse** và các container warehouse-sqlserver-1, warehouse-db-init-1, warehouse-migrate-1, warehouse-backend-1, warehouse-frontend-1. db-init/migrate **Exited(0)** là hoàn tất bình thường; ba service SQL Server/backend/frontend phải healthy. Exited(1) cần xem log, không reset dữ liệu để thử lại.
+
+Hồ sơ giao hàng demo của `khach01` được nạp từ `backend/scripts/seed-demo-customer-profile.js`. Docker áp dụng seed một lần cho cả cài mới và volume demo đã khởi tạo. Ba tài khoản `khach01`, `uc01.customer`, `uc01.customer2` dùng cùng hồ sơ khách hàng và cùng phạm vi đơn hàng. Seed giữ liên kết đó để các đơn đã có vẫn tra cứu được.
 
 | Thành phần | Địa chỉ |
 |---|---|
@@ -80,7 +89,7 @@ Trình tự: SQL Server healthy → db-init kiểm nhận diện/installation ma
 
 Secrets riêng mỗi máy trong `infra/secrets/docker/`, Git/Docker ignore. Setup dừng khi cấu hình dở dang/xung đột, không ghi đè hoặc tự đổi mật khẩu server đã có volume. Mất secrets khi vẫn giữ volume cần phục hồi secrets/DB theo kế hoạch, không sinh mới tùy tiện.
 
-Seed chỉ tái tạo fixture giả:9roles/19accounts/1KH,3kho/5vịtrí và danh mục/BOM/calendar/factors/scopes như trước, không tồn đầu/chứng từ/QC. Tài khoản uc01.* nhận mật khẩu ngẫu nhiên lưu private trong volume demo; chín account dễ nhớ dùng secret demo riêng. Trên máy hiện tại setup dùng password demo local đã duyệt nếu có; máy mới không có file đó sẽ sinh password ngẫu nhiên, lưu ở `infra/secrets/docker/simpleDemoPassword` và `SSMS.local.md`. Không commit password hoặc copy WindowsDBcredentials sang người khác.
+Khi cài Docker lần đầu, 13 tài khoản demo ở trên dùng mật khẩu cục bộ mặc định. Nếu máy đã có `backend/.artifacts/simple-demo-password.local` trước khi chạy setup, giá trị đó được ưu tiên. Mật khẩu demo của bản cài được ghi vào `infra/secrets/docker/simpleDemoPassword` và trường `Application demo password` trong `SSMS.local.md`. Các tài khoản `uc01.*` khác dùng mật khẩu ngẫu nhiên riêng, lưu trong volume demo. Mật khẩu kết nối SQL Server và secret CSRF được sinh ngẫu nhiên cho từng bản cài. Chạy lại setup hoặc khởi động lại Docker với volume đã khởi tạo giữ mật khẩu hiện có.
 
 Seed chạy một lần theo installation ID và revision, lưu dấu hoàn tất trong warehouse_demo_artifacts. Những lần up tiếp theo chỉ kiểm/apply migration mới, không tự seed lại dữ liệu demo đã chỉnh qua app. Nếu initialization trước đó gián đoạn hoặc mất dấu hoàn tất, seed lặp lại phải khớp fixture và không overwrite; xung đột dừng rõ thay vì reset. Không xóa dấu hoàn tất hoặc hạ policy/transaction để bỏ lỗi seed.
 

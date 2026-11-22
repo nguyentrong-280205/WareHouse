@@ -1,3 +1,5 @@
+**Trạng thái hiện hành 16/11/2026:** giữ DA_CODE_CHUA_TEST cho 29 UC; không phục hồi các gate CHUA_LAM/đợi giao từng UC trong lịch sử bên dưới. R01–R08 và tiến độ KHSX đã sửa mã, test mới chưa chạy. [Nguồn trạng thái hiện hành](current_status.md).
+
 <!-- SQLSERVER_CURRENT_20261016 -->
 > **Công nghệ hiện hành 16/10/2026:** Microsoft SQL Server 2022 trên `NGUYENTRONG-200\HTTT02`, Express/JavaScript CommonJS + `mssql`, migration T-SQL. Các hướng dẫn MySQL/mysql2/Prisma/InnoDB/utf8mb4 và lệnh Compose cũ phía dưới là **DA_THAY_THE về công nghệ**, giữ làm lịch sử; quyết định nghiệp vụ vẫn theo FS01–FS12 và các phê duyệt còn hiệu lực. Không chạy test tự động hoặc tự nghiệm thu UC. Xem [hướng dẫn hiện hành](sqlserver_runbook.md) và [báo cáo chuyển đổi](sqlserver_conversion.md).
 

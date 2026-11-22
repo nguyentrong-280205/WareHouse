@@ -1,3 +1,5 @@
+**Bổ sung hiện hành 16/11/2026:** danh mục API bên dưới là checkpoint lịch sử. Contract đang bind có thêm thao tác khóa/mở khóa vị trí; không quyền hoặc migration mới. [Trạng thái hiện hành](current_status.md), [bản sửa](system_fixes_20261116.md).
+
 <!-- SQLSERVER_CURRENT_20261016 -->
 > **Công nghệ hiện hành 16/10/2026:** Microsoft SQL Server 2022 trên `NGUYENTRONG-200\HTTT02`, Express/JavaScript CommonJS + `mssql`, migration T-SQL. Các hướng dẫn MySQL/mysql2/Prisma/InnoDB/utf8mb4 và lệnh Compose cũ phía dưới là **DA_THAY_THE về công nghệ**, giữ làm lịch sử; quyết định nghiệp vụ vẫn theo FS01–FS12 và các phê duyệt còn hiệu lực. Không chạy test tự động hoặc tự nghiệm thu UC. Xem [hướng dẫn hiện hành](sqlserver_runbook.md) và [báo cáo chuyển đổi](sqlserver_conversion.md).
 

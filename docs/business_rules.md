@@ -1,3 +1,5 @@
+**Bổ sung đã chốt 16/11/2026:** tiến độ cấp nguyên liệu chỉ tính lượng thực xuất; reservation chỉ tính quota. KHSX hoàn thành khi mọi dòng phân công có đủ sản lượng FINISHED đã nhập kho sau QC, gồm REWORK có truy nguồn gốc; loại FAILED/hàng trả. Cập nhật trạng thái và audit cùng transaction. [Hiện thực và giới hạn](system_fixes_20261116.md), [trạng thái hiện hành](current_status.md).
+
 # Quy tắc nghiệp vụ và vòng đời — bản nháp
 
 Hiện thực16/10/2026: các bất biến FS01–12 đã được nối vào service/repository và UI cho29UC, **DA_CODE_CHUA_TEST**, không thay nội dung SRS/Domain. [Bàn giao](full_system_handoff.md) nêu thao tác và giới hạn chưa kiểm. Điều kiện bảo quản NL khai báo phải khớp storageRule vị trí khi phân bổ/ghi sổ; không đổi rule vị trí trái với NL đang lưu. UC13 xác nhận không giữ sức chứa; snapshot không là lời hứa đủ chỗ ở lần ghi sổ sau. PO đủ lượng giao chuyển HOAN_THANH, lượng QC/lượng nhập theo nguồn riêng. Tồn theo kỳ dùng ledger, reservation chỉ công bố hiện tại; tỷ lệ chênh lệch trả numerator/denominator chính xác, FE hiển thị phần trăm tối đa4chữ số, không làm thay đổi lượng/tiền nghiệp vụ.

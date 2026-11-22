@@ -1,3 +1,5 @@
+**Manifest nguồn hiện hành 16/11/2026:** 81 bảng/256FK sau toàn bộ migration trong repository. Danh mục máy đọc được ở `backend/database/sqlserver/schema-manifest.json`; kiểm cả bảng và đồ thị FK, không chỉ số lượng. Chưa đọc/đổi schema DB trong đợt này. Các số theo môi trường/revision bên dưới là lịch sử. [Trạng thái hiện hành](current_status.md).
+
 # Bổ sung gợi ý vật tư23/10/2026 — Docker warehouse
 
 Bổ sung26/10 đã được duyệt: migration202610260001_supplier_quotes_notes thêm DonMuaNguyenLieu.notes NVARCHAR(2000) NULL và bảng BaoGiaNguyenLieu (NCC/vật tư/đơn vị/phiên bản/giá DECIMAL20,6/hiệu lực UTC). Sau migration Docker dev/test có77bảng nghiệp vụ/241FK, gồm3FK báo giá mới. Không thay schema HTTT02. Các số76/238 bên dưới là mốc trước migration này. [Thiết kế](purchase_supplier_design.md).

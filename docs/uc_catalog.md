@@ -1,3 +1,5 @@
+**Hiện hành 16/11/2026:** cả 29 UC đã có mã, giữ DA_CODE_CHUA_TEST; FS01–FS12 đã duyệt. Bảng thiết kế và những đoạn CHUA_LAM/CHUA_DUYET bên dưới là hồ sơ lịch sử, không phải gate hiện hành. [Trạng thái](current_status.md), [bản sửa mới](system_fixes_20261116.md).
+
 <!-- SQLSERVER_CURRENT_20261016 -->
 > **Công nghệ hiện hành 16/10/2026:** Microsoft SQL Server 2022 trên `NGUYENTRONG-200\HTTT02`, Express/JavaScript CommonJS + `mssql`, migration T-SQL. Các hướng dẫn MySQL/mysql2/Prisma/InnoDB/utf8mb4 và lệnh Compose cũ phía dưới là **DA_THAY_THE về công nghệ**, giữ làm lịch sử; quyết định nghiệp vụ vẫn theo FS01–FS12 và các phê duyệt còn hiệu lực. Không chạy test tự động hoặc tự nghiệm thu UC. Xem [hướng dẫn hiện hành](sqlserver_runbook.md) và [báo cáo chuyển đổi](sqlserver_conversion.md).
 

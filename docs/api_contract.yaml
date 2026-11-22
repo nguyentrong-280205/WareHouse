@@ -727,7 +727,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -826,7 +826,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -1299,7 +1299,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -1398,7 +1398,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -1871,7 +1871,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -1970,7 +1970,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -2452,7 +2452,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -2551,7 +2551,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -3033,7 +3033,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -3132,7 +3132,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -3540,6 +3540,61 @@
         "x-fs-policy-revision": "FS-20261015"
       }
     },
+    "/orders/delivery-defaults": {
+      "get": {
+        "operationId": "orders.deliveryDefaults",
+        "summary": "Lấy thông tin giao hàng mặc định và ngày giao sớm nhất",
+        "tags": [
+          "UC11"
+        ],
+        "description": "Trả về tên, địa chỉ và điện thoại của hồ sơ khách hàng thuộc phiên đăng nhập. Mục còn thiếu hoặc vượt giới hạn lưu đơn là null. Ngày giao sớm nhất là ngày nghiệp vụ Việt Nam hiện tại cộng 7 ngày lịch.",
+        "x-uc": "UC11",
+        "x-permissions": [
+          "orders.create"
+        ],
+        "x-draft": true,
+        "responses": {
+          "200": {
+            "description": "Thông tin giao hàng mặc định.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDeliveryDefaults"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/E401"
+          },
+          "403": {
+            "$ref": "#/components/responses/E403"
+          },
+          "404": {
+            "$ref": "#/components/responses/E404"
+          },
+          "500": {
+            "$ref": "#/components/responses/E500"
+          }
+        },
+        "x-fs-policy-revision": "FS-20261015"
+      }
+    },
     "/orders/{id}": {
       "get": {
         "operationId": "orders.read",
@@ -3709,7 +3764,7 @@
         "tags": [
           "UC11"
         ],
-        "description": "Kiểm quyền/scope, state và version theo SRS; không tự bỏ điều kiện nguồn. NT07: lấy customer_id từ account hiện hành, kiểm action/state và order.customer_id; nhiều account cùng KH có cùng boundary dữ liệu khách, khác KH bị403/404. Không chỉ lọc created_by, không tin ID khách trong body/query. VND chốt amount20,0 bằng rule rounding/version đã duyệt, không làm tròn trung gian. Mode/line-vs-total chưa chốt→409 POLICY_NOT_APPROVED/rollback, không để DB tự round.",
+        "description": "Kiểm quyền/scope, state và version theo SRS; không tự bỏ điều kiện nguồn. NT07: lấy customer_id từ account hiện hành, kiểm action/state và order.customer_id; nhiều account cùng KH có cùng boundary dữ liệu khách, khác KH bị403/404. Không chỉ lọc created_by, không tin ID khách trong body/query. VND chốt amount20,0 bằng rule rounding/version đã duyệt, không làm tròn trung gian. Mode/line-vs-total chưa chốt→409 POLICY_NOT_APPROVED/rollback, không để DB tự round. Ngày giao phải còn cách ngày xác nhận theo giờ Việt Nam ít nhất 7 ngày lịch.",
         "x-uc": "UC11",
         "x-permissions": [
           "orders.submit"
@@ -3841,6 +3896,15 @@
             "schema": {
               "type": "string",
               "minLength": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Tìm theo mã chứng từ trong phạm vi được cấp.",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
             }
           }
         ],
@@ -6531,6 +6595,15 @@
                 "REJECTED"
               ]
             }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Tìm theo mã chứng từ trong phạm vi được cấp.",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
           }
         ],
         "responses": {
@@ -7195,6 +7268,15 @@
                 "MATERIAL",
                 "SALE"
               ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Tìm theo mã chứng từ trong phạm vi được cấp.",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
             }
           }
         ],
@@ -9037,7 +9119,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -10454,6 +10536,19 @@
               "pattern": "^[1-9][0-9]*$",
               "example": "42"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW_STOCK",
+                "NEAR_EXPIRY",
+                "EXPIRED",
+                "SLOW_MOVING"
+              ]
+            }
           }
         ],
         "responses": {
@@ -10508,7 +10603,7 @@
         "tags": [
           "UC15"
         ],
-        "description": "Thiết kế chưa triển khai; validation/RBAC/object scope/version/idempotency theo documents.",
+        "description": "Chỉ đọc trong phạm vi kho và loại phiếu được cấp quyền. Nhân viên đọc phiếu nguyên liệu phải được phân công và phiếu đã gửi; áp dụng cùng kiểm truy cập với chi tiết phiếu.",
         "x-uc": "UC15",
         "x-permissions": [
           "issues.read",
@@ -11118,7 +11213,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Thành công; response chỉ sau commit, ID/quantity serialize chuỗi",
             "content": {
               "application/json": {
@@ -15271,7 +15366,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Nguồn PO đã duyệt/nhận một phần cho nhân viên có receipts.postMaterial và phạm vi kho nguyên liệu hoặc kiểm soát đang hoạt động. Độc lập phạm vi xưởng; chỉ trả mã PO và vật tư/lượng/đơn vị, không trả giá hoặc phân công xưởng."
       }
     },
     "/material-deliveries": {
@@ -16202,6 +16298,438 @@
           }
         }
       }
+    },
+    "/orders/{id}/issue-suggestions": {
+      "get": {
+        "operationId": "issues.saleSuggestions",
+        "summary": "Gợi ý phân bổ thành phẩm giao hàng theo FEFO",
+        "description": "Chỉ đọc cho đơn hàng xác nhận/đang giao và kho trong phạm vi issues.allocate; gợi ý mọi dòng còn cần xuất theo đơn vị cơ sở, trừ phần đã xuất/giữ, chia nhiều lô/vị trí theo cùng thứ tự FEFO của xác nhận. Không tạo phiếu, giữ hoặc trừ tồn. Lưu/xác nhận/ghi sổ vẫn kiểm lại quota, QC, FEFO và tồn trong transaction.",
+        "x-uc": "UC15",
+        "x-permissions": [
+          "issues.allocate"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Gợi ý tại thời điểm đọc",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "warehouseId": {
+                          "$ref": "#/components/schemas/Id"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "sourceLineId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "lotKind": {
+                                "type": "string",
+                                "enum": [
+                                  "PRODUCT"
+                                ]
+                              },
+                              "balanceId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "lotId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "locationId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "unitId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "quantity": {
+                                "$ref": "#/components/schemas/Quantity"
+                              }
+                            }
+                          }
+                        },
+                        "balances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "id": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "warehouseId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "locationId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "lotKind": {
+                                "type": "string"
+                              },
+                              "qualityBucket": {
+                                "type": "string"
+                              },
+                              "lotId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "itemId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "itemCode": {
+                                "type": "string"
+                              },
+                              "itemName": {
+                                "type": "string"
+                              },
+                              "lotCode": {
+                                "type": "string"
+                              },
+                              "unitId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "available": {
+                                "$ref": "#/components/schemas/Quantity"
+                              },
+                              "expiresOn": {
+                                "type": "string",
+                                "format": "date",
+                                "nullable": true
+                              }
+                            }
+                          }
+                        },
+                        "shortages": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "sourceLineId": {
+                                "$ref": "#/components/schemas/Id"
+                              },
+                              "unitName": {
+                                "type": "string"
+                              },
+                              "remainingBase": {
+                                "$ref": "#/components/schemas/Quantity"
+                              },
+                              "hasPartial": {
+                                "type": "boolean"
+                              },
+                              "productCode": {
+                                "type": "string"
+                              },
+                              "productName": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "orderId": {
+                          "$ref": "#/components/schemas/Id"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses/{id}/locations/{locationId}/lock": {
+      "post": {
+        "operationId": "warehouses.lockLocation",
+        "summary": "Khóa vị trí lưu kho",
+        "x-uc": "UC19",
+        "x-permissions": [
+          "warehouses.write"
+        ],
+        "x-approval-status": "DA_XAC_NHAN_FS_20261015",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kết quả thực tế từ SQL Server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sai quyền/phạm vi",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột trạng thái/quota/version",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "description": "Thao tác riêng, yêu cầu kho ACTIVE, phiên bản đúng và không thuộc phạm vi kiểm kê. Vị trí đã ngưng sử dụng sau chuyển tồn giữ khóa để bảo toàn lịch sử."
+      }
+    },
+    "/warehouses/{id}/locations/{locationId}/unlock": {
+      "post": {
+        "operationId": "warehouses.unlockLocation",
+        "summary": "Mở khóa vị trí lưu kho",
+        "x-uc": "UC19",
+        "x-permissions": [
+          "warehouses.write"
+        ],
+        "x-approval-status": "DA_XAC_NHAN_FS_20261015",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kết quả thực tế từ SQL Server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sai quyền/phạm vi",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột trạng thái/quota/version",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Dữ liệu không hợp lệ",
+            "headers": {
+              "X-Session-Idle-Expires-At": {
+                "description": "Thời hạn idle UTC hiện hành nếu request đã được xác thực; không gia hạn hard timeout.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandInput"
+              }
+            }
+          }
+        },
+        "description": "Thao tác riêng, yêu cầu kho ACTIVE, phiên bản đúng và không thuộc phạm vi kiểm kê. Vị trí đã ngưng sử dụng sau chuyển tồn giữ khóa để bảo toàn lịch sử."
+      }
     }
   },
   "components": {
@@ -17058,27 +17586,31 @@
         "additionalProperties": false,
         "required": [
           "dueDate",
-          "deliveryAddress",
-          "recipient",
-          "recipientPhone",
           "lines"
         ],
         "properties": {
           "dueDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "Ngày giao phải từ ngày tạo đơn theo giờ Việt Nam cộng ít nhất 7 ngày lịch."
           },
           "deliveryAddress": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Bỏ qua trường này để dùng thông tin đã lưu trong hồ sơ khách hàng."
           },
           "recipient": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Bỏ qua trường này để dùng thông tin đã lưu trong hồ sơ khách hàng."
           },
           "recipientPhone": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 32,
+            "description": "Bỏ qua trường này để dùng thông tin đã lưu trong hồ sơ khách hàng."
           },
           "lines": {
             "type": "array",
@@ -17116,6 +17648,41 @@
                 }
               }
             }
+          }
+        }
+      },
+      "OrderDeliveryDefaults": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "deliveryAddress",
+          "recipient",
+          "recipientPhone",
+          "earliestDueDate"
+        ],
+        "properties": {
+          "deliveryAddress": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "recipient": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "recipientPhone": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "earliestDueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Ngày nghiệp vụ Việt Nam hiện tại cộng 7 ngày lịch."
           }
         }
       },
@@ -20232,6 +20799,9 @@
           "estimatedTotalAmount": {
             "$ref": "#/components/schemas/MoneyVND",
             "description": "Chỉ đơn NHAP và khi tất cả dòng có giá hợp lệ; tạm tính, không ghi database."
+          },
+          "code": {
+            "type": "string"
           }
         },
         "description": "VND chính xác dạng chuỗi. Đơn NHAP hiển thị estimatedUnitPrice/estimatedAmount/estimatedTotalAmount từ giá hiệu lực, không ghi snapshot. Xác nhận chốt unitPrice/amount/totalAmount theo giá hiệu lực lúc submit, HALF_UP từng dòng theo FS01; không làm tròn trung gian. Đơn đã xác nhận chỉ trả giá đã lưu, không định giá lại. customerId quyết định phạm vi truy cập."
@@ -20720,6 +21290,10 @@
           },
           "remainingCapacity": {
             "$ref": "#/components/schemas/CapacityAmount"
+          },
+          "retired": {
+            "type": "boolean",
+            "description": "Vị trí nguồn đã ngưng sử dụng sau chuyển tồn; không được mở khóa."
           }
         }
       },
@@ -20964,6 +21538,9 @@
           "lotCode": {
             "type": "string",
             "nullable": true
+          },
+          "itemCode": {
+            "type": "string"
           }
         }
       },
@@ -22461,7 +23038,8 @@
             "enum": [
               "ACTIVE",
               "LOCKED"
-            ]
+            ],
+            "description": "Không dùng khi cập nhật; đổi trạng thái qua endpoint lock/unlock riêng."
           },
           "expectedVersion": {
             "$ref": "#/components/schemas/ExpectedVersion"

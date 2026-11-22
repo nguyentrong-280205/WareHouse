@@ -1,50 +1,454 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme inline {
+	--color-blue-600: var(--wms-primary);
+	--color-blue-700: var(--wms-primary-hover);
+}
+
+:root {
+	--wms-canvas: #f8fafc;
+	--wms-surface: #fff;
+	--wms-ink: #0f172a;
+	--wms-muted: #475569;
+	--wms-line: #e2e8f0;
+	--wms-control-border: #64748b;
+	--wms-primary: #1d4ed8;
+	--wms-primary-hover: #1e40af;
+	--wms-focus: #2563eb;
+	--wms-info-bg: #eff6ff;
+	--wms-info-text: #1e40af;
+	--wms-success-bg: #f0fdf4;
+	--wms-success-text: #166534;
+	--wms-warning-bg: #fffbeb;
+	--wms-warning-text: #92400e;
+	--wms-danger-bg: #fef2f2;
+	--wms-danger-text: #991b1b;
+	--wms-qc-bg: #faf5ff;
+	--wms-qc-text: #6b21a8;
+	--wms-neutral-bg: #f1f5f9;
+	--wms-neutral-text: #334155;
+	--wms-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--wms-radius-control: 0.5rem;
+	--wms-radius-panel: 0.75rem;
+	--wms-space-1: 0.25rem;
+	--wms-space-2: 0.5rem;
+	--wms-space-3: 0.75rem;
+	--wms-space-4: 1rem;
+	--wms-space-6: 1.5rem;
+	--wms-space-8: 2rem;
+	--wms-space-12: 3rem;
+	--wms-depth: 0 8px 24px rgb(15 23 42 / 0.14);
+	--wms-header-height: 4rem;
+	--wms-control-height: 2.5rem;
+}
 
 @layer base {
-  button {
-    border: 1px solid #cbd5e1;
-    border-radius: 0.625rem;
-    padding: 0.45rem 0.75rem;
-    background-color: #fff;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 150ms, border-color 150ms, box-shadow 150ms;
-  }
-  button:focus-visible {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-  }
-  button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-  button:not(:disabled):hover {
-    border-color: #94a3b8;
-    box-shadow: 0 1px 3px rgb(15 23 42 / 0.12);
-  }
-  body {
-    background-color: #f8fafc;
-    color: #1e293b;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-  }
+	html {
+		scroll-padding-block-start: calc(var(--wms-header-height) + 1rem);
+	}
+
+	html:has(.wms-dialog[open]) {
+		overflow: hidden;
+	}
+
+	body {
+		min-height: 100vh;
+		background: var(--wms-canvas);
+		color: var(--wms-ink);
+		font-family: var(--wms-font);
+	}
+
+	::selection {
+		background: #dbeafe;
+		color: var(--wms-ink);
+	}
+
+	button {
+		border: 1px solid var(--wms-line);
+		border-radius: var(--wms-radius-control);
+		padding: 0.45rem 0.75rem;
+		background: var(--wms-surface);
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 150ms, border-color 150ms;
+	}
+
+	button:not(:disabled):hover {
+		border-color: var(--wms-control-border);
+	}
+
+	button:disabled {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+
+	:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+		outline: 2px solid var(--wms-focus);
+		outline-offset: 2px;
+	}
+
+	:where(input, textarea)::placeholder {
+		color: var(--wms-muted);
+	}
+
+	:where(input, textarea, select) {
+		accent-color: var(--wms-primary);
+	}
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+@layer components {
+	.wms-app {
+		min-height: 100vh;
+		background: var(--wms-canvas);
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+	}
+
+	.wms-header {
+		min-height: var(--wms-header-height);
+		border-bottom: 1px solid var(--wms-line);
+		background: var(--wms-surface);
+	}
+
+	.wms-main {
+		width: 100%;
+		max-width: 100rem;
+		margin-inline: auto;
+		padding: var(--wms-space-4);
+	}
+
+	.wms-page-title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 2rem;
+		letter-spacing: -0.02em;
+		text-wrap: balance;
+	}
+
+	.wms-section-title {
+		font-size: 1.125rem;
+		font-weight: 650;
+		line-height: 1.625rem;
+	}
+
+	.wms-panel,
+	.wms-toolbar {
+		border: 1px solid var(--wms-line);
+		border-radius: var(--wms-radius-panel);
+		background: var(--wms-surface);
+	}
+
+	.wms-toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--wms-space-3);
+		padding: var(--wms-space-3);
+	}
+
+	.wms-input {
+		width: 100%;
+		min-width: 0;
+		min-height: var(--wms-control-height);
+		border: 1px solid var(--wms-control-border);
+		border-radius: var(--wms-radius-control);
+		background: var(--wms-surface);
+		padding: var(--wms-space-2) var(--wms-space-3);
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+	}
+
+	.wms-input:where([readonly], :disabled) {
+		border-color: var(--wms-line);
+		background: var(--wms-neutral-bg);
+		color: var(--wms-neutral-text);
+	}
+
+	.wms-input:user-invalid {
+		border-color: var(--wms-danger-text);
+	}
+
+	.wms-button {
+		display: inline-flex;
+		min-height: var(--wms-control-height);
+		align-items: center;
+		justify-content: center;
+		gap: var(--wms-space-2);
+		border: 1px solid var(--wms-control-border);
+		border-radius: var(--wms-radius-control);
+		background: var(--wms-surface);
+		padding: var(--wms-space-2) var(--wms-space-3);
+		color: var(--wms-neutral-text);
+		font-size: 0.875rem;
+		font-weight: 600;
+		line-height: 1.25rem;
+		text-align: center;
+	}
+
+	.wms-button:not(:disabled):hover {
+		background: var(--wms-neutral-bg);
+	}
+
+	.wms-button--primary {
+		border-color: var(--wms-primary);
+		background: var(--wms-primary);
+		color: var(--wms-surface);
+	}
+
+	.wms-button--primary:not(:disabled):hover {
+		background: var(--wms-primary-hover);
+	}
+
+	.wms-button--danger {
+		border-color: var(--wms-danger-text);
+		background: var(--wms-danger-bg);
+		color: var(--wms-danger-text);
+	}
+
+	.wms-button--danger:not(:disabled):hover {
+		background: #fee2e2;
+	}
+
+	.wms-button--ghost {
+		border-color: transparent;
+		background: transparent;
+	}
+
+	.wms-button--compact {
+		min-height: 2.25rem;
+		padding: 0.25rem 0.625rem;
+	}
+
+	.wms-button--icon {
+		width: var(--wms-control-height);
+		padding: 0;
+	}
+
+	.wms-badge {
+		display: inline-flex;
+		max-width: 100%;
+		align-items: center;
+		border: 1px solid currentColor;
+		border-radius: 9999px;
+		padding: 0.125rem var(--wms-space-2);
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.125rem;
+		overflow-wrap: anywhere;
+	}
+
+	.wms-notice {
+		border: 1px solid var(--wms-line);
+		border-radius: var(--wms-radius-control);
+		padding: var(--wms-space-3) var(--wms-space-4);
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		overflow-wrap: anywhere;
+	}
+
+	.wms-tone-info {
+		background: var(--wms-info-bg);
+		color: var(--wms-info-text);
+	}
+	.wms-tone-success {
+		background: var(--wms-success-bg);
+		color: var(--wms-success-text);
+	}
+	.wms-tone-warning {
+		background: var(--wms-warning-bg);
+		color: var(--wms-warning-text);
+	}
+	.wms-tone-danger {
+		background: var(--wms-danger-bg);
+		color: var(--wms-danger-text);
+	}
+	.wms-tone-qc {
+		background: var(--wms-qc-bg);
+		color: var(--wms-qc-text);
+	}
+	.wms-tone-neutral {
+		background: var(--wms-neutral-bg);
+		color: var(--wms-neutral-text);
+	}
+
+	.wms-table {
+		width: 100%;
+		text-align: start;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+	}
+
+	.wms-table > thead {
+		background: var(--wms-canvas);
+		color: var(--wms-muted);
+	}
+
+	.wms-table :where(th, td) {
+		padding: 0.625rem 0.875rem;
+		vertical-align: middle;
+	}
+
+	.wms-table th {
+		font-weight: 650;
+		text-align: start;
+	}
+
+	.wms-table caption {
+		caption-side: top;
+	}
+
+	.wms-table > tbody > tr {
+		border-block-start: 1px solid var(--wms-line);
+	}
+
+	.wms-table > tbody > tr:focus-within {
+		background: var(--wms-info-bg);
+	}
+
+	.wms-table .wms-table-number {
+		text-align: end;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.wms-table-message {
+		padding: var(--wms-space-8) var(--wms-space-4);
+		color: var(--wms-muted);
+		text-align: center;
+	}
+
+	.wms-dialog {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: none;
+		height: 100%;
+		max-height: none;
+		margin: 0;
+		overflow: auto;
+		background: transparent;
+		padding: var(--wms-space-3);
+		overscroll-behavior: contain;
+	}
+
+	.wms-dialog::backdrop {
+		background: rgb(15 23 42 / 0.48);
+	}
+
+	.wms-dialog > :where(form, div, section) {
+		border-radius: var(--wms-radius-panel);
+		box-shadow: var(--wms-depth);
+	}
+
+	.wms-dialog-panel {
+		width: 100%;
+		max-width: 52rem;
+		margin-inline: auto;
+		background: var(--wms-surface);
+		padding: var(--wms-space-4);
+	}
+
+	.wms-dialog-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--wms-space-3);
+	}
+
+	.wms-dialog-footer {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-end;
+		gap: var(--wms-space-3);
+		border-top: 1px solid var(--wms-line);
+		padding-top: var(--wms-space-4);
+	}
+
+	@media (width >= 640px) {
+		.wms-dialog {
+			padding: var(--wms-space-6);
+		}
+
+		.wms-dialog-panel {
+			padding: var(--wms-space-6);
+		}
+	}
+
+	@media (width >= 1024px) {
+		.wms-main {
+			padding: var(--wms-space-6);
+		}
+	}
+
+	@media (width < 640px) {
+		.wms-button--compact {
+			min-height: var(--wms-control-height);
+		}
+
+		.responsive-records,
+		.responsive-records > tbody {
+			display: block;
+		}
+
+		.responsive-records > thead {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		.responsive-records > tbody > tr:not(.responsive-record) {
+			display: table;
+			width: 100%;
+		}
+
+		.responsive-records .responsive-record {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: var(--wms-space-3) var(--wms-space-4);
+			padding: var(--wms-space-4);
+		}
+
+		.responsive-record > td[data-label] {
+			padding: 0;
+			text-align: start;
+			white-space: normal;
+			overflow-wrap: anywhere;
+		}
+
+		.responsive-record > td[data-label]::before {
+			display: block;
+			margin-bottom: 0.125rem;
+			color: var(--wms-muted);
+			font-size: 0.75rem;
+			font-weight: 600;
+			content: attr(data-label);
+		}
+
+		.responsive-record > :is(.responsive-key, .responsive-actions) {
+			grid-column: 1 / -1;
+			padding: 0;
+		}
+	}
 }
 
+@media (width < 640px) {
+	:root {
+		--wms-control-height: 2.75rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wms-app :is(.transition-all, .transition-colors, .transition-opacity, .transition-transform),
+	.login-page :is(button, input, a) {
+		transition: none;
+	}
+
+	.wms-app .animate-pulse {
+		animation: none;
+	}
+}

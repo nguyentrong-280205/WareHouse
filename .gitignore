@@ -10,6 +10,10 @@ generated/
 *.tsbuildinfo
 /.tools-runtime/
 
+# Locally installed AI skills and Codex hooks.
+/.agents/skills/
+/.codex/
+
 # Machine-specific configuration and credentials. Templates must be committed.
 .env
 .env.*
@@ -31,6 +35,7 @@ logs/
 *.sql.dump
 *.sql.gz
 *.bak
+*.bacpac
 *.trn
 *.mdf
 *.ndf
@@ -41,6 +46,7 @@ coverage/
 .nyc_output/
 playwright-report/
 test-results/
+*.har
 
 # Generated bundle; the editable docs/ directory remains in Git.
 /docs.zip

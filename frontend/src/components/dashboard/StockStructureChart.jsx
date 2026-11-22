@@ -1,90 +1,102 @@
-import React from 'react';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieIcon } from 'lucide-react';
 
-function StockStructureChart({ data = [],totalStockFormatted='—',unitLabel='' }) {
+function StockStructureChart({ data, totalStockFormatted, unitLabel, loading }) {
+	const emptyMessage = loading
+		? 'Đang tải cơ cấu tồn kho…'
+		: unitLabel
+			? 'Không có tồn kho theo đơn vị đã chọn.'
+			: 'Chọn đơn vị để xem cơ cấu tồn kho.';
 
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between h-full">
-      {/* Chart Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <PieIcon className="w-5 h-5 text-blue-600" />
-          <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Cơ cấu tồn kho
-          </h2>
-        </div>
-      </div>
+	return (
+		<section className="flex h-full min-w-0 flex-col wms-panel p-4">
+			<h2 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900">
+				<PieIcon aria-hidden="true" className="size-5 shrink-0 text-blue-600" />
+				Cơ cấu tồn kho
+			</h2>
 
-      {/* Chart Body */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center flex-1 my-auto">
-        {/* Donut Chart Canvas with Center Text */}
-        <div className="sm:col-span-6 relative h-52 flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={62}
-                outerRadius={84}
-                paddingAngle={4}
-                dataKey="value"
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(_val,_name,item) => item.payload.formattedValue}
-                contentStyle={{
-                  backgroundColor: '#0f172a',
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '12px',
-                  border: 'none',
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+			{data.length > 0 ? (
+				<div className="flex min-w-0 flex-1 flex-col justify-center gap-4 pt-4">
+					<div className="relative mx-auto aspect-square w-full max-w-44">
+						<ResponsiveContainer width="100%" height="100%">
+							<PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+								<Pie
+									data={data}
+									dataKey="value"
+									innerRadius="74%"
+									outerRadius="96%"
+									startAngle={90}
+									endAngle={-270}
+									paddingAngle={data.length > 1 ? 3 : 0}
+									isAnimationActive={false}
+								>
+									{data.map((item) => (
+										<Cell key={item.name} fill={item.color} stroke="none" />
+									))}
+								</Pie>
+								<Tooltip
+									formatter={(_value, name, item) => [
+										item.payload.formattedValue,
+										name
+									]}
+									contentStyle={{ borderRadius: '12px', fontSize: '12px' }}
+								/>
+							</PieChart>
+						</ResponsiveContainer>
 
-          {/* Center Donut Label */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-            <span className="text-base font-black text-slate-900 leading-tight">
-              {totalStockFormatted}
-            </span>
-            <span className="text-xs font-bold text-blue-600">{unitLabel}</span>
-            <span className="text-[10px] text-slate-400 font-medium">
-              Tổng cộng
-            </span>
-          </div>
-        </div>
+						<div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+							<span className="text-xs font-medium text-slate-500">Tổng tồn</span>
+							<span
+								className="max-w-[69%] truncate text-lg font-bold leading-tight text-slate-900 tabular-nums"
+								title={totalStockFormatted}
+							>
+								{totalStockFormatted}
+							</span>
+							<span className="max-w-[65%] truncate text-xs text-slate-500">
+								{unitLabel}
+							</span>
+						</div>
+					</div>
 
-        {/* Legend Breakdown */}
-        <div className="sm:col-span-6 space-y-3 pl-2">
-          {data.map((item, idx) => (
-            <div key={idx} className="flex items-start gap-2.5">
-              <span
-                className="w-3 h-3 rounded-full shrink-0 mt-1"
-                style={{ backgroundColor: item.color }}
-              />
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold text-slate-800 truncate">
-                  {item.name}
-                </span>
-                <span className="text-xs text-slate-500">
-                  {item.formattedValue}{' '}
-                  <span className="font-semibold text-slate-600">
-                    ({item.percentage}%)
-                  </span>
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+					<ul aria-label="Tồn kho theo tình trạng" className="divide-y divide-slate-100">
+						{data.map((item) => (
+							<li
+								key={item.name}
+								className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 py-2 text-xs"
+							>
+								<div className="flex min-w-0 items-center gap-2">
+									<span
+										aria-hidden="true"
+										className="size-2.5 shrink-0 rounded-full"
+										style={{ backgroundColor: item.color }}
+									/>
+									<span className="font-semibold text-slate-700">
+										{item.name}
+									</span>
+								</div>
+								<div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 text-right tabular-nums">
+									<span className="text-slate-600">{item.formattedValue}</span>
+									<span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-700">
+										{item.percentage}%
+									</span>
+								</div>
+							</li>
+						))}
+					</ul>
+				</div>
+			) : (
+				<div className="flex flex-1 flex-col items-center justify-center gap-4 py-6 text-center">
+					<div
+						aria-hidden="true"
+						className="size-24 rounded-full border-[10px] border-slate-100"
+					/>
+					<p role="status" className="text-sm text-slate-500">
+						{emptyMessage}
+					</p>
+				</div>
+			)}
+		</section>
+	);
 }
 
 export default StockStructureChart;

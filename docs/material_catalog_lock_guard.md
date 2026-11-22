@@ -1,3 +1,5 @@
+**Đã mở rộng sửa mã 16/11/2026:** khoảng trống updateLocation nêu trong hồ sơ bên dưới đã được xử lý: chỉ sửa kho/vị trí ACTIVE, khóa/mở khóa riêng, không mở lại vị trí đã ngưng sử dụng sau chuyển tồn; giữ khóa kiểm kê/version/audit. Chưa chạy test nghiệp vụ. [Chi tiết](system_fixes_20261116.md).
+
 # Khóa danh mục (NVL/TP/Kho/Lô) không chặn sửa — 03/11/2026
 
 Phát hiện khi kiểm tra kỹ nghiệp vụ/bảo mật UC10 (Quản lý nguyên liệu) và UC30 (Quản lý lô nguyên liệu) đối chiếu `docs/Đặc tả UseCase Hệ thống kho Final.docx`, demo trực tiếp qua API thật trên Docker (không phải suy luận từ đọc code).
